@@ -1,0 +1,1 @@
+INSERT INTO nsc_meap_schedule VALUES(1,0,-1,-1,-1,-1,-1,'com.nsc.meap.queue.bsc.schedule.QueueJob');

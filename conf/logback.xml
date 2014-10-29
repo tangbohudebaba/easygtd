@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>   
+<configuration>   
+    <property name="LOG_HOME" value="C:/logback" />
+    
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">   
+       <Encoding>UTF-8</Encoding>   
+        <layout class="ch.qos.logback.classic.PatternLayout">   
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger - %msg%n</pattern>   
+        </layout>   
+    </appender>   
+    
+    <appender name="FILE"  
+        class="ch.qos.logback.core.rolling.RollingFileAppender">   
+        <Encoding>UTF-8</Encoding>   
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">   
+            <FileNamePattern>${LOG_HOME}/app.log.%d{yyyy-MM-dd}.log</FileNamePattern>
+            <MaxHistory>30</MaxHistory>
+        </rollingPolicy>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>     
+       </layout>
+    </appender>
+
+    <root level="DEBUG">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE" />
+    </root>
+    
+     <logger name="com.nsc">
+        <level value="DEBUG"/>
+    </logger>
+    
+    <logger name="java.sql.PreparedStatement">
+        <level value="DEBUG"/>
+    </logger>
+    
+</configuration> 

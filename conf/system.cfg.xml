@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<system>
+	<site>
+		<secret>abcdefg</secret>
+		<proxiedContextPath>/meap</proxiedContextPath>
+	</site>
+</system>
