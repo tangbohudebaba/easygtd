@@ -104,7 +104,7 @@ public class JavaSmsApi {
 		//修改为您的apikey
 		String apikey = "b1c43c82a2e012894d6026846a42727c";
 		//修改为您要发送的手机号
-		String mobile = "18611866642";
+		String mobile = "13810863414";
 		
 		/**************** 查账户信息调用示例 *****************/
 		//System.out.println(JavaSmsApi.getUserInfo(apikey));
@@ -119,7 +119,7 @@ public class JavaSmsApi {
 		//设置模板ID，如使用1号模板:您的验证码是#code#【#company#】
 		long tpl_id=1;
 		//设置对应的模板变量值
-		String tpl_value="#code#=3145&#company#=北京智想天成科技有限公司";
+		String tpl_value="#code#=1451&#company#=北京智想天成科技有限公司";
 		//模板发送的调用示例
 		System.out.println(JavaSmsApi.tplSendSms(apikey, tpl_id, tpl_value, mobile));
 	}
