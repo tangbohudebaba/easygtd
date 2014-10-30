@@ -1,5 +1,5 @@
 
-package com.nationsky.backstage.business.util;
+package com.nationsky.backstage.business.common;
 
 import java.io.IOException;
 
@@ -41,6 +41,7 @@ public class JavaSmsApi {
 	 */
 	private static String URI_TPL_SEND_SMS = BASE_URI + "/" + VERSION + "/sms/tpl_send.json";
 	
+	public static final String APIKEY = "b1c43c82a2e012894d6026846a42727c";
 	/**
 	 * 取账户信息
 	 * @return json格式字符串
@@ -102,7 +103,7 @@ public class JavaSmsApi {
 	
 	public static void main(String[] args) throws IOException {
 		//修改为您的apikey
-		String apikey = "b1c43c82a2e012894d6026846a42727c";
+		
 		//修改为您要发送的手机号
 		String mobile = "13810863414";
 		
@@ -121,6 +122,6 @@ public class JavaSmsApi {
 		//设置对应的模板变量值
 		String tpl_value="#code#=1451&#company#=北京智想天成科技有限公司";
 		//模板发送的调用示例
-		System.out.println(JavaSmsApi.tplSendSms(apikey, tpl_id, tpl_value, mobile));
+		System.out.println(JavaSmsApi.tplSendSms(APIKEY, tpl_id, tpl_value, mobile));
 	}
 }                 

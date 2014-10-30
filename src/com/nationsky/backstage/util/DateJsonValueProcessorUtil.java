@@ -73,9 +73,23 @@ public class DateJsonValueProcessorUtil implements JsonValueProcessor {
 				ResponseMessageJsonObject.accumulate(accumulateKey, JSONArray.fromObject(child,config));
 			}else{
 				try {
-					ResponseMessageJsonObject.accumulate(accumulateKey, JSONObject.fromObject(child,config));
-				} catch (JSONException e) {
-					ResponseMessageJsonObject.accumulate(accumulateKey,child);
+					if(((Class) child.getClass().getField("TYPE").get(null)).isPrimitive()){
+						ResponseMessageJsonObject.accumulate(accumulateKey,child);
+					}else{
+						ResponseMessageJsonObject.accumulate(accumulateKey, JSONObject.fromObject(child,config));
+					}
+				} catch (IllegalArgumentException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (NoSuchFieldException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (SecurityException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}
 		}
