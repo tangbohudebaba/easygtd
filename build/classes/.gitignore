@@ -1,1 +1,10 @@
 /com
+/ehcache.xml
+/i18n
+/jdbc.properties
+/logback.xml
+/spring-dao.cfg.xml
+/spring-mvc.cfg.xml
+/spring-service.cfg.xml
+/spring.cfg.xml
+/system.cfg.xml
