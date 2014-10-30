@@ -13,6 +13,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.nationsky.backstage.business.common.ResponseMessage;
 import com.nationsky.backstage.util.ValidateUtil;
 
 /**
@@ -26,6 +27,7 @@ public class BaseAction {
 	
 	protected static final String MESSAGE_ATTRIBUTE = "message";
 	protected static final String ERROR = "error";
+	protected ResponseMessage responseMessage = new ResponseMessage();
 	
 	/**
 	 * 前端报错信息处理Map

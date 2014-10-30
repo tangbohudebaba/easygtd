@@ -10,7 +10,7 @@ import javax.net.ssl.X509TrustManager;
  * @author 
  * @date 
  */  
-public class MyX509TrustManager implements X509TrustManager{
+public class MyX509TrustManagerUtil implements X509TrustManager{
 	 public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {  
 	    }  
 	  
