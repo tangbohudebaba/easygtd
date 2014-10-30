@@ -117,5 +117,82 @@ public class UserAction extends BaseAction {
 		}
 	}
 	
+	@RequestMapping(value = "submitAuthCode", method = RequestMethod.POST)
+	public void submitAuthCode(HttpServletRequest request,HttpServletResponse response) {
+		try {
+			String phone = request.getParameter("phone");
+			String type = request.getParameter("type");
+			String authCode = request.getParameter("authCode");
+			if(ValidateUtil.isNull(phone)||ValidateUtil.isNull(type)||ValidateUtil.isNull(authCode)){
+				logger.info("submitAuthCode fail");
+				responseMessage.setCode("4");
+				responseMessage.setErrormsg("验证码错误");
+				response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, null,null));
+				return;
+			}
+			AuthCode authCodePO = securityService.getUnique(AuthCode.class, Factor.create("type", C.Eq, Integer.parseInt(type)),Factor.create("phone", C.Eq, phone), Factor.create("authCode", C.Eq, Integer.parseInt(authCode)));
+			if(authCodePO!=null){
+				securityService.remove(authCodePO);
+				response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, null,null));
+				return;
+			}else{
+				logger.info("getAuthCode fail");
+				responseMessage.setCode("4");
+				responseMessage.setErrormsg("验证码错误");
+				response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, null,null));
+				return;
+			}
+		} catch (IOException e) {
+			try {
+				logger.info("getAuthCode fail");
+				responseMessage.setCode("4");
+				responseMessage.setErrormsg("验证码错误");
+				response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, null,null));
+				return;
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+	}
+	
+	@RequestMapping(value = "setPwd", method = RequestMethod.POST)
+	public void setPwd(HttpServletRequest request,HttpServletResponse response) {
+		try {
+			String phone = request.getParameter("phone");
+			String password = request.getParameter("password");
+			if(ValidateUtil.isNull(phone)||ValidateUtil.isNull(password)){
+				logger.info("setPwd fail");
+				responseMessage.setCode("5");
+				responseMessage.setErrormsg("设置密码错误");
+				response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, null,null));
+				return;
+			}
+			UserInfo userInfo = securityService.getUnique(UserInfo.class,Factor.create("phone", C.Eq, phone));
+			if(userInfo!=null){
+				userInfo.setPassword(password);
+				securityService.update(userInfo);
+				response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, null,null));
+				return;
+			}else{
+				logger.info("getAuthCode fail");
+				responseMessage.setCode("5");
+				responseMessage.setErrormsg("设置密码错误");
+				response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, null,null));
+				return;
+			}
+		} catch (IOException e) {
+			try {
+				logger.info("getAuthCode fail");
+				responseMessage.setCode("5");
+				responseMessage.setErrormsg("设置密码错误");
+				response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, null,null));
+				return;
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+	}
 	
 }
