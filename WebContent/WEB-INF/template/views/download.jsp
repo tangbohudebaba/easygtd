@@ -3,16 +3,16 @@
 	String encryptFilename = request.getParameter("file");
 String targetFileName = null;
 java.io.File file = null;
-String str = com.nsc.meap.util.HashUtil.decrypt(com.nsc.meap.Configuration.getSecurityKey(),encryptFilename);
-java.util.List<String> list = com.nsc.meap.util.StringUtil.tokenize(str,"|");
+String str = com.nationsky.backstage.util.HashUtil.decrypt(com.nationsky.backstage.Configuration.getSecurityKey(),encryptFilename);
+java.util.List<String> list = com.nationsky.backstage.util.StringUtil.tokenize(str,"|");
 String filePath = null;
 String fileName = null;
 if(list.size()>0)
 	filePath = list.get(0);
 if(list.size()>1)
 	fileName = list.get(1);
-file = com.nsc.meap.util.ValidateUtil.isNull(filePath)?null:new java.io.File(filePath);
-targetFileName = com.nsc.meap.util.ValidateUtil.isNull(fileName)?com.nsc.meap.util.FileUtil.getFileName(filePath):fileName;
+file = com.nationsky.backstage.util.ValidateUtil.isNull(filePath)?null:new java.io.File(filePath);
+targetFileName = com.nationsky.backstage.util.ValidateUtil.isNull(fileName)?com.nationsky.backstage.util.FileUtil.getFileName(filePath):fileName;
 response.setContentType("application/octet-stream");
 
 if(file == null || !file.exists()){
