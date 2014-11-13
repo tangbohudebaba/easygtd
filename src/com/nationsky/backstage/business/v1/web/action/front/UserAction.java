@@ -9,75 +9,69 @@ import net.sf.json.JSONObject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.nationsky.backstage.business.common.BusinessBaseAction;
 import com.nationsky.backstage.business.common.JavaSmsApi;
-import com.nationsky.backstage.business.v1.bsc.ISecurityService;
 import com.nationsky.backstage.business.v1.bsc.dao.po.AuthCode;
 import com.nationsky.backstage.business.v1.bsc.dao.po.UserInfo;
 import com.nationsky.backstage.core.Factor;
 import com.nationsky.backstage.core.Factor.C;
-import com.nationsky.backstage.core.web.action.BaseAction;
-import com.nationsky.backstage.util.DateJsonValueProcessorUtil;
 import com.nationsky.backstage.util.ValidateUtil;
 
 @Controller
 @RequestMapping(value = "v1/user/")
-public class UserAction extends BaseAction {
+public class UserAction extends BusinessBaseAction {
 	static final Logger logger = LoggerFactory.getLogger(UserAction.class);
-	@Autowired
-	private ISecurityService securityService;
 	
+	
+	/**
+	 * 用户登录
+	 * @param request
+	 * @param response
+	 */
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
 	public void login(HttpServletRequest request,HttpServletResponse response) {
+		String code = "1", msg = "login fail";//错误默认值
+		String phone = request.getParameter("phone");
+		String password = request.getParameter("password");
 		try {
-			String phone = request.getParameter("phone");
-			String password = request.getParameter("password");
-			
-			logger.info("login:"+ phone+"\t"+password);
-			
-			UserInfo userInfo = securityService.getUnique(UserInfo.class, Factor.create("phone", C.Eq, phone));
+			UserInfo userInfo = commonService.getUnique(UserInfo.class, Factor.create("phone", C.Eq, phone));
 			if(userInfo!=null&&ValidateUtil.isEquals(userInfo.getPassword(), password)){
-				logger.info("login success");
-				response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, "userInfo", userInfo));
-				return;
+				code = "0";
+				msg = "login success";
+				responseWriter(msg, response, "userInfo", userInfo);
+			}else {
+				throw new IOException();
 			}
-			logger.info("login fail");
-			responseMessage.setCode("1");
-			responseMessage.setErrormsg("登录失败");
-			response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage,null,null));
-		} catch (IOException e) {
-			try {
-				logger.info("login fail");
-				responseMessage.setCode("1");
-				responseMessage.setErrormsg("登录失败");
-				response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, null,null));
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
 		}
+		logger.info("phone:{},code:{},msg:{}",phone,code,msg);
 	}
 	
 	
+	/**
+	 * 获取短信验证码
+	 * @param request
+	 * @param response
+	 */
 	@RequestMapping(value = "getAuthCode", method = RequestMethod.POST)
 	public void getAuthCode(HttpServletRequest request,HttpServletResponse response) {
+		String code = "3", msg = "手机号和验证码类型不能为空";//错误默认值
+		String phone = request.getParameter("phone");
+		String type = request.getParameter("type");
 		try {
-			String phone = request.getParameter("phone");
-			String type = request.getParameter("type");
 			if(ValidateUtil.isNull(phone)||ValidateUtil.isNull(type)){
-				logger.info("getAuthCode fail");
-				responseMessage.setCode("2");
-				responseMessage.setErrormsg("手机号和验证码类型不能为空");
-				response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, null,null));
-				return;
+				code = "2";
+				msg = "手机号和验证码类型不能为空";
+				throw new Exception();
 			}
-			AuthCode authCodePO1 = securityService.getUnique(AuthCode.class, Factor.create("type", C.Eq, Integer.parseInt(type)),Factor.create("phone", C.Eq, phone));
+			AuthCode authCodePO1 = commonService.getUnique(AuthCode.class, Factor.create("type", C.Eq, Integer.parseInt(type)),Factor.create("phone", C.Eq, phone));
 			if(authCodePO1!=null){
-				securityService.remove(authCodePO1);
+				commonService.remove(authCodePO1);
 			}
 			int authCode = (int) (Math.random()*9000+1000);
 			//设置模板ID，如使用1号模板:您的验证码是#code#【#company#】
@@ -88,11 +82,7 @@ public class UserAction extends BaseAction {
 			String sendSmsResultStr = JavaSmsApi.tplSendSms(JavaSmsApi.APIKEY, tpl_id, tpl_value, phone);
 			int sendSmsResultCode = (int)JSONObject.fromObject(sendSmsResultStr).get("code");
 			if(sendSmsResultCode!=0){
-				logger.info("getAuthCode fail");
-				responseMessage.setCode("3");
-				responseMessage.setErrormsg("获取验证码错误");
-				response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, null,null));
-				return;
+				throw new Exception();
 			}
 			//验证码保存到数据库
 			AuthCode authCodePO = new AuthCode();
@@ -100,99 +90,71 @@ public class UserAction extends BaseAction {
 			authCodePO.setPhone(phone);
 			authCodePO.setType(Integer.parseInt(type));
 			authCodePO.setAuthCode(authCode);
-			securityService.create(authCodePO);
-			response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, "authCode", authCode));
-			return;
-		} catch (IOException e) {
-			try {
-				logger.info("getAuthCode fail");
-				responseMessage.setCode("3");
-				responseMessage.setErrormsg("获取验证码错误");
-				response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, null,null));
-				return;
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+			commonService.create(authCodePO);
+			code = "0";
+			responseWriter(response, "authCode", authCode);
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
 		}
+		logger.info("phone:{},code:{},msg:{}",phone,code,msg);
 	}
 	
+	/**
+	 * 提交验证码
+	 * @param request
+	 * @param response
+	 */
 	@RequestMapping(value = "submitAuthCode", method = RequestMethod.POST)
 	public void submitAuthCode(HttpServletRequest request,HttpServletResponse response) {
+		String code = "4", msg = "验证码错误";//错误默认值
+		String phone = request.getParameter("phone");
+		String type = request.getParameter("type");
+		String authCode = request.getParameter("authCode");
 		try {
-			String phone = request.getParameter("phone");
-			String type = request.getParameter("type");
-			String authCode = request.getParameter("authCode");
 			if(ValidateUtil.isNull(phone)||ValidateUtil.isNull(type)||ValidateUtil.isNull(authCode)){
-				logger.info("submitAuthCode fail");
-				responseMessage.setCode("4");
-				responseMessage.setErrormsg("验证码错误");
-				response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, null,null));
-				return;
+				throw new Exception();
 			}
-			AuthCode authCodePO = securityService.getUnique(AuthCode.class, Factor.create("type", C.Eq, Integer.parseInt(type)),Factor.create("phone", C.Eq, phone), Factor.create("authCode", C.Eq, Integer.parseInt(authCode)));
+			AuthCode authCodePO = commonService.getUnique(AuthCode.class, Factor.create("type", C.Eq, Integer.parseInt(type)),Factor.create("phone", C.Eq, phone), Factor.create("authCode", C.Eq, Integer.parseInt(authCode)));
 			if(authCodePO!=null){
-				securityService.remove(authCodePO);
-				response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, null,null));
-				return;
+				commonService.remove(authCodePO);
+				code = "0";
+				responseWriter(response);
 			}else{
-				logger.info("getAuthCode fail");
-				responseMessage.setCode("4");
-				responseMessage.setErrormsg("验证码错误");
-				response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, null,null));
-				return;
+				throw new Exception();
 			}
-		} catch (IOException e) {
-			try {
-				logger.info("getAuthCode fail");
-				responseMessage.setCode("4");
-				responseMessage.setErrormsg("验证码错误");
-				response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, null,null));
-				return;
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
 		}
+		logger.info("phone:{},code:{},msg:{}",phone,code,msg);
 	}
 	
+	/**
+	 * 用户注册时用户设置的初始密码
+	 * @param request
+	 * @param response
+	 */
 	@RequestMapping(value = "setPwd", method = RequestMethod.POST)
 	public void setPwd(HttpServletRequest request,HttpServletResponse response) {
+		String code = "5", msg = "设置密码错误";//错误默认值
+		String phone = request.getParameter("phone");
+		String password = request.getParameter("password");
 		try {
-			String phone = request.getParameter("phone");
-			String password = request.getParameter("password");
 			if(ValidateUtil.isNull(phone)||ValidateUtil.isNull(password)){
-				logger.info("setPwd fail");
-				responseMessage.setCode("5");
-				responseMessage.setErrormsg("设置密码错误");
-				response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, null,null));
-				return;
+				throw new Exception();
 			}
-			UserInfo userInfo = securityService.getUnique(UserInfo.class,Factor.create("phone", C.Eq, phone));
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("phone", C.Eq, phone));
 			if(userInfo!=null){
 				userInfo.setPassword(password);
-				securityService.update(userInfo);
-				response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, null,null));
-				return;
+				commonService.update(userInfo);
+				code = "0";
+				responseWriter(response);
 			}else{
-				logger.info("getAuthCode fail");
-				responseMessage.setCode("5");
-				responseMessage.setErrormsg("设置密码错误");
-				response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, null,null));
-				return;
+				throw new Exception();
 			}
-		} catch (IOException e) {
-			try {
-				logger.info("getAuthCode fail");
-				responseMessage.setCode("5");
-				responseMessage.setErrormsg("设置密码错误");
-				response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, null,null));
-				return;
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
 		}
+		logger.info("phone:{},code:{},msg:{}",phone,code,msg);
 	}
 	
 }

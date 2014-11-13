@@ -7,7 +7,7 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.nationsky.backstage.business.common.CommonService;
+import com.nationsky.backstage.business.common.BusinessCommonService;
 import com.nationsky.backstage.business.v1.bsc.dao.po.AuthCode;
 import com.nationsky.backstage.core.Factor;
 import com.nationsky.backstage.core.Factor.C;
@@ -32,10 +32,10 @@ public class AuthCodeJob implements Job {
 			throws JobExecutionException {
 		logger.info("--clear expiry authcode start--");
 		//清理数据库中失效的验证码
-		List<AuthCode> authCodeList = CommonService.securityService.findList(AuthCode.class, 0, Integer.MAX_VALUE, null, Factor.create("createdAtMillis", C.Le, System.currentTimeMillis()-20*1000*60));
+		List<AuthCode> authCodeList = BusinessCommonService.commonService.findList(AuthCode.class, 0, Integer.MAX_VALUE, null, Factor.create("createdAtMillis", C.Le, System.currentTimeMillis()-20*1000*60));
 		logger.info("clear expiry authcode count:"+authCodeList.size());
 		for (AuthCode authCode : authCodeList) {
-			CommonService.securityService.remove(authCode);
+			BusinessCommonService.commonService.remove(authCode);
 		}
 		logger.info("--clear expiry authcode finashed--");
 	}

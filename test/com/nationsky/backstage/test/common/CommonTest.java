@@ -1,16 +1,20 @@
 package com.nationsky.backstage.test.common;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.nationsky.backstage.util.HttpUtil;
 
 
 public class CommonTest {
+	static final Logger logger = LoggerFactory.getLogger(CommonTest.class);
 	public static String urlStr = "http://127.0.0.1:8080/easygtd/v1/";
 	public static void main(String[] args) {
-//		login();
+		login();
 //		getAuthCode();
 //		submitAuthCode();
 //		setPwd();
-		System.out.println(System.currentTimeMillis());
+//		System.out.println(System.currentTimeMillis());
 	}
 	
 	//登录
@@ -44,4 +48,6 @@ public class CommonTest {
 		String result = HttpUtil.getResult(urlStr+childUrl, queryString);
 		System.out.println(result);
 	}
+	
+	
 }

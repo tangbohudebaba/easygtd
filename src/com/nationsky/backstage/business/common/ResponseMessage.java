@@ -16,19 +16,18 @@ package com.nationsky.backstage.business.common;
  */
 public class ResponseMessage {
 	private String code = "0";
-	private String errormsg = "";
+	private String msg = "";
 	public String getCode() {
 		return code;
 	}
 	public void setCode(String code) {
 		this.code = code;
 	}
-	public String getErrormsg() {
-		return errormsg;
+	public String getMsg() {
+		return msg;
 	}
-	public void setErrormsg(String errormsg) {
-		this.errormsg = errormsg;
+	public void setMsg(String msg) {
+		this.msg = msg;
 	}
-	
 	
 }

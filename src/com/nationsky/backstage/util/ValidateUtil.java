@@ -399,4 +399,24 @@ public class ValidateUtil {
 		// TODO Auto-generated method stub
 		return colles==null || colles.isEmpty();
 	}
+	
+	/**
+	 * 判断一个对象是不是Java八大基本类型
+	 * @param object
+	 * @return
+	 */
+	public static boolean isPrimitive(Object object){
+		if(object == null){
+			return false;
+		}else{
+			try {
+				return ((Class) object.getClass().getField("TYPE").get(null)).isPrimitive();
+			} catch (IllegalArgumentException | IllegalAccessException
+					| NoSuchFieldException | SecurityException e) {
+				//e.printStackTrace();
+				return false;
+			}
+		}
+	}
+	
 }

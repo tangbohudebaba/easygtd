@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.Date;
 
 import net.sf.json.JSONArray;
-import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import net.sf.json.JsonConfig;
 import net.sf.json.processors.JsonValueProcessor;
@@ -61,7 +60,7 @@ public class DateJsonValueProcessorUtil implements JsonValueProcessor {
 	 * 二级json组合
 	 * @param parent 父节点实体类
 	 * @param accumulateKey 子节点名称
-	 * @param child 子节点实体类或者实体类集合
+	 * @param child 子节点(实体类或者实体类集合或者任意对象包括八大基本类型)
 	 * @return
 	 */
 	public static String secondJsonJoint(Object parent,String accumulateKey , Object child){
@@ -72,25 +71,11 @@ public class DateJsonValueProcessorUtil implements JsonValueProcessor {
 			if(child instanceof Collection){
 				ResponseMessageJsonObject.accumulate(accumulateKey, JSONArray.fromObject(child,config));
 			}else{
-				try {
-					if(((Class) child.getClass().getField("TYPE").get(null)).isPrimitive()){
+					if(ValidateUtil.isPrimitive(child)){
 						ResponseMessageJsonObject.accumulate(accumulateKey,child);
 					}else{
 						ResponseMessageJsonObject.accumulate(accumulateKey, JSONObject.fromObject(child,config));
 					}
-				} catch (IllegalArgumentException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IllegalAccessException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (NoSuchFieldException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (SecurityException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 			}
 		}
 		return ResponseMessageJsonObject.toString();

@@ -8,12 +8,13 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.nationsky.backstage.business.common.ResponseMessage;
+import com.nationsky.backstage.common.bsc.ICommonService;
 import com.nationsky.backstage.util.ValidateUtil;
 
 /**
@@ -27,8 +28,8 @@ public class BaseAction {
 	
 	protected static final String MESSAGE_ATTRIBUTE = "message";
 	protected static final String ERROR = "error";
-	protected ResponseMessage responseMessage = new ResponseMessage();
-	
+	@Autowired
+	protected ICommonService commonService;
 	/**
 	 * 前端报错信息处理Map
 	 * @return
