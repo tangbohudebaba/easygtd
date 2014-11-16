@@ -135,7 +135,7 @@ public class UserAction extends BusinessBaseAction {
 	 */
 	@RequestMapping(value = "setPwd", method = RequestMethod.POST)
 	public void setPwd(HttpServletRequest request,HttpServletResponse response) {
-		String code = "5", msg = "设置密码错误";//错误默认值
+		String code = "5", msg = "设置初始密码错误";//错误默认值
 		String phone = request.getParameter("phone");
 		String password = request.getParameter("password");
 		try {
@@ -143,12 +143,16 @@ public class UserAction extends BusinessBaseAction {
 				throw new Exception();
 			}
 			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("phone", C.Eq, phone));
-			if(userInfo!=null){
+			if(userInfo==null){
+				userInfo = new UserInfo();
+				userInfo.setPhone(phone);
 				userInfo.setPassword(password);
-				commonService.update(userInfo);
+				commonService.create(userInfo);
 				code = "0";
 				responseWriter(response);
 			}else{
+				 code = "6";
+				 msg = "此手机号已经存在";
 				throw new Exception();
 			}
 		} catch (Exception e) {

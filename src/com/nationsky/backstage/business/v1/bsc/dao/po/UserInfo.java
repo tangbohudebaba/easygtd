@@ -46,8 +46,8 @@ public class UserInfo extends PO {
 	private String password;//用户密码：MD5
 	private String headURL;//用户头像图片url
 	private String phone;//用户手机号
-	private Timestamp createdAt;//用户创建时间
-	private Timestamp updatedAt;//用户信息更新时间
+	private Timestamp createdAt = new Timestamp(System.currentTimeMillis());//用户创建时间
+	private Timestamp updatedAt = new Timestamp(System.currentTimeMillis());//用户信息更新时间
 	
 	public Integer getId() {
 		return id;
