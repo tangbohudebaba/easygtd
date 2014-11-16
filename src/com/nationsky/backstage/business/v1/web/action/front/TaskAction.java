@@ -30,7 +30,7 @@ public class TaskAction extends BusinessBaseAction {
 				throw new Exception();
 			}
 			List<TaskInfo> taskInfoList = commonService.findList(TaskInfo.class, 0, Integer.MAX_VALUE, "beginTime:desc", Factor.create("userId", C.Eq, userId));
-			
+			System.out.println("");
 			
 			//UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("phone", C.Eq, phone));
 //			if(userInfo==null){
