@@ -78,7 +78,6 @@ public class DateJsonValueProcessorUtil implements JsonValueProcessor {
 					}
 			}
 		}
-		System.out.println(ResponseMessageJsonObject.toString());
 		return ResponseMessageJsonObject.toString();
 	}
 
