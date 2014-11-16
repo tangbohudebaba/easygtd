@@ -1,5 +1,7 @@
 package com.nationsky.backstage.business.v1.web.action.front;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -11,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.nationsky.backstage.business.common.BusinessBaseAction;
 import com.nationsky.backstage.business.v1.bsc.dao.po.TaskInfo;
-import com.nationsky.backstage.business.v1.bsc.dao.po.UserInfo;
 import com.nationsky.backstage.core.Factor;
 import com.nationsky.backstage.core.Factor.C;
 import com.nationsky.backstage.util.ValidateUtil;
@@ -28,7 +29,9 @@ public class TaskAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(userId)){
 				throw new Exception();
 			}
-			commonService.findList(TaskInfo.class, 0, Integer.MAX_VALUE, "beginTime:desc", Factor.create("userId", C.Eq, userId));
+			List<TaskInfo> taskInfoList = commonService.findList(TaskInfo.class, 0, Integer.MAX_VALUE, "beginTime:desc", Factor.create("userId", C.Eq, userId));
+			
+			
 			//UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("phone", C.Eq, phone));
 //			if(userInfo==null){
 //				userInfo = new UserInfo();
