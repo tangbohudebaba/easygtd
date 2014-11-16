@@ -33,7 +33,7 @@ public class UserAction extends BusinessBaseAction {
 	 * @param response
 	 */
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
-	public void login(HttpServletRequest request,HttpServletResponse response) {
+	public void login(HttpServletRequest request,HttpServletResponse response) { 
 		String code = "1", msg = "login fail";//错误默认值
 		String phone = request.getParameter("phone");
 		String password = request.getParameter("password");
