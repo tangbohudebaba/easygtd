@@ -62,18 +62,26 @@ public class UserAction extends BusinessBaseAction {
 	public void getAuthCode(HttpServletRequest request,HttpServletResponse response) {
 		String code = "3", msg = "手机号和验证码类型不能为空";//错误默认值
 		String phone = request.getParameter("phone");
-		String type = request.getParameter("type");
+		String type = request.getParameter("type");//
 		try {
 			if(ValidateUtil.isNull(phone)||ValidateUtil.isNull(type)){
 				code = "2";
 				msg = "手机号和验证码类型不能为空";
 				throw new Exception();
 			}
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("phone", C.Eq, phone));
+			if(userInfo!=null&&ValidateUtil.isEquals("1", type)){
+				 code = "6";
+				 msg = "此手机号已经存在";
+				throw new Exception();
+			}
+			
 			AuthCode authCodePO1 = commonService.getUnique(AuthCode.class, Factor.create("type", C.Eq, Integer.parseInt(type)),Factor.create("phone", C.Eq, phone));
 			if(authCodePO1!=null){
 				commonService.remove(authCodePO1);
 			}
 			int authCode = (int) (Math.random()*9000+1000);
+//			int authCode = 1234;
 			//设置模板ID，如使用1号模板:您的验证码是#code#【#company#】
 			long tpl_id=1;
 			//设置对应的模板变量值
@@ -92,6 +100,7 @@ public class UserAction extends BusinessBaseAction {
 			authCodePO.setAuthCode(authCode);
 			commonService.create(authCodePO);
 			code = "0";
+			msg = "";
 			responseWriter(response, "authCode", authCode);
 		} catch (Exception e) {
 			responseWriter(code, msg, response);
@@ -118,6 +127,7 @@ public class UserAction extends BusinessBaseAction {
 			if(authCodePO!=null){
 				commonService.remove(authCodePO);
 				code = "0";
+				msg = "";
 				responseWriter(response);
 			}else{
 				throw new Exception();
@@ -149,6 +159,7 @@ public class UserAction extends BusinessBaseAction {
 				userInfo.setPassword(password);
 				commonService.create(userInfo);
 				code = "0";
+				msg = "";
 				responseWriter(response);
 			}else{
 				 code = "6";

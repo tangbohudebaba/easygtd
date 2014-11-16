@@ -1,20 +1,25 @@
 package com.nationsky.backstage.test.common;
 
+import java.util.Date;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.nationsky.backstage.util.DateUtil;
 import com.nationsky.backstage.util.HttpUtil;
 
 
 public class CommonTest {
 	static final Logger logger = LoggerFactory.getLogger(CommonTest.class);
-	public static String urlStr = "http://123.57.46.100/easygtd/v1/";//127.0.0.1:8080
+	public static String urlStr = "http://127.0.0.1:8080/easygtd/v1/";//127.0.0.1:8080
 	public static void main(String[] args) {
-		login();
+//		login();
 //		getAuthCode();
 //		submitAuthCode();
 //		setPwd();
+//		new Date(System.currentTimeMillis());
 //		System.out.println(System.currentTimeMillis());
+		getList();
 	}
 	
 	//登录
@@ -49,5 +54,11 @@ public class CommonTest {
 		System.out.println(result);
 	}
 	
-	
+	//5.	获取任务列表
+	public static void getList(){
+		String childUrl = "task/getList.ac"; 
+		String queryString = "userId=3";
+		String result = HttpUtil.getResult(urlStr+childUrl, queryString);
+		System.out.println(result);
+	}
 }

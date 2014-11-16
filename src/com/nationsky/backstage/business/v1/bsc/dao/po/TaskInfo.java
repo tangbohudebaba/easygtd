@@ -36,11 +36,12 @@ public class TaskInfo extends PO {
 	private Long endTime;//结束时间戳GTM毫秒数
 	private Integer reminderTime;//提醒时间分钟数
 	private String location;//地理位置经纬度
-	private Integer isHasMembers = 0;//是否有成员
-	private Integer isDone = 0;//是否已完成
-	private Integer isFlag = 0;//是否已星标
+	private Integer isHasMembers = 0;//是否有成员 0有成员 1无成员
+	private Integer isDone = 0;//是否已完成 0已完成 1没完成
+	private Integer isFlag = 0;//是否已星标 0是星标任务 1不是星标任务
 	private Integer userId;//创建任务的用户ID
 	private String memberUserIds;//成员用户IDs,英文半角逗号分割
+	private String remark;//备注
 	private Timestamp createdAt = new Timestamp(System.currentTimeMillis());//任务创建时间
 	private Timestamp updatedAt = new Timestamp(System.currentTimeMillis());//任务更新时间
 	
@@ -148,6 +149,15 @@ public class TaskInfo extends PO {
 	public void setMemberUserIds(String memberUserIds) {
 		this.memberUserIds = memberUserIds;
 	}
+
+	public String getRemark() {
+		return remark;
+	}
+
+	public void setRemark(String remark) {
+		this.remark = remark;
+	}
+	
 	
 	
 }
