@@ -1,11 +1,9 @@
 package com.nationsky.backstage.test.common;
 
-import java.util.Date;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.nationsky.backstage.util.DateUtil;
+import com.nationsky.backstage.util.FileUtil;
 import com.nationsky.backstage.util.HttpUtil;
 
 
@@ -17,9 +15,25 @@ public class CommonTest {
 //		getAuthCode();
 //		submitAuthCode();
 //		setPwd();
+//		getInfo();
+//		create();
+		update();
 //		new Date(System.currentTimeMillis());
 //		System.out.println(System.currentTimeMillis());
-		getList();
+//		getList();
+//		String userId = "1";
+//		String memberUserIds = "22,1,ss,1";
+//		memberUserIds = memberUserIds.replace(userId, "").replace(",,", ",");
+//		if(memberUserIds.startsWith(",")){
+//			memberUserIds = memberUserIds.substring(1);
+//		}
+//		if(memberUserIds.endsWith(",")){
+//			memberUserIds = memberUserIds.substring(0, memberUserIds.length()-1);
+//		}
+//		System.out.println(memberUserIds);
+		
+//		String a = HttpUtil.getResult("http://123.57.46.100/easygtd/v1/task/create.ac", null);
+//		System.out.println(a);
 	}
 	
 	//登录
@@ -61,4 +75,31 @@ public class CommonTest {
 		String result = HttpUtil.getResult(urlStr+childUrl, queryString);
 		System.out.println(result);
 	}
+	
+	//10.	获取任务详情
+	public static void getInfo(){
+		String childUrl = "task/getInfo.ac";
+		String queryString = "userId=3&taskId=2";
+		String result = HttpUtil.getResult(urlStr+childUrl, queryString);
+		System.out.println(result);
+	}
+	
+	//11.	创建任务
+	public static void create(){
+		String childUrl = "task/create.ac";
+		String taskInfo = FileUtil.readFile("D:\\create.json");
+		String queryString = "userId=2&taskInfo="+taskInfo;
+		String result = HttpUtil.getResult(urlStr+childUrl, queryString);
+		System.out.println(result);
+	}
+	
+	//11.	更新任务
+	public static void update(){
+		String childUrl = "task/update.ac";
+		String taskInfo = FileUtil.readFile("D:\\update.json");
+		String queryString = "taskId=2&userId=2&taskInfo="+taskInfo;
+		String result = HttpUtil.getResult(urlStr+childUrl, queryString);
+		System.out.println(result);
+	}
+	
 }

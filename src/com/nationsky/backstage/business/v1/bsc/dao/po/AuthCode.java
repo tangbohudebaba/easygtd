@@ -42,7 +42,7 @@ public class AuthCode extends PO {
 	private Integer id;
 	private String phone;//用户手机号
 	private Integer authCode;//验证码
-	private Integer type;//验证码类型：1注册验证码，2修改密码验证码
+	private Integer type;//验证码类型：1注册验证码，2修改密码验证码, 3忘记密码验证码
 	private Long createdAtMillis;//创建时间的毫秒数
 	
 	public Integer getId() {

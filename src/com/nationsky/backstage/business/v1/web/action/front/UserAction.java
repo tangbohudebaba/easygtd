@@ -1,6 +1,7 @@
 package com.nationsky.backstage.business.v1.web.action.front;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -73,6 +74,10 @@ public class UserAction extends BusinessBaseAction {
 			if(userInfo!=null&&ValidateUtil.isEquals("1", type)){
 				 code = "6";
 				 msg = "此手机号已经存在";
+				throw new Exception();
+			}else if(userInfo == null && ValidateUtil.isEquals("3", type)){
+				 code = "9";
+				 msg = "此手机号未注册";
 				throw new Exception();
 			}
 			
@@ -148,6 +153,7 @@ public class UserAction extends BusinessBaseAction {
 		String code = "5", msg = "设置初始密码错误";//错误默认值
 		String phone = request.getParameter("phone");
 		String password = request.getParameter("password");
+		String name = request.getParameter("name");
 		try {
 			if(ValidateUtil.isNull(phone)||ValidateUtil.isNull(password)){
 				throw new Exception();
@@ -156,6 +162,7 @@ public class UserAction extends BusinessBaseAction {
 			if(userInfo==null){
 				userInfo = new UserInfo();
 				userInfo.setPhone(phone);
+				userInfo.setName(name);
 				userInfo.setPassword(password);
 				commonService.create(userInfo);
 				code = "0";
@@ -171,5 +178,38 @@ public class UserAction extends BusinessBaseAction {
 		}
 		logger.info("phone:{},code:{},msg:{}",phone,code,msg);
 	}
+	
+//	/**
+//	 * 获取好友列表
+//	 * @param request
+//	 * @param response
+//	 */
+//	@RequestMapping(value = "getBuddyList", method = RequestMethod.POST)
+//	public void getBuddyList(HttpServletRequest request,HttpServletResponse response) {
+//		String code = "8", msg = "提交失败";//错误默认值
+//		String userId = request.getParameter("userId");
+//		try {
+//			if(ValidateUtil.isNull(userId)){
+//				throw new Exception();
+//			}
+//			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, userId));
+//			if(userInfo==null){
+//				List<UserInfo> userInfoList = commonService.findList(UserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("", C.In, value));
+//				userInfo = new UserInfo();
+//				userInfo.setPhone(phone);
+//				userInfo.setName(name);
+//				userInfo.setPassword(password);
+//				commonService.create(userInfo);
+//				code = "0";
+//				msg = "";
+//				responseWriter(response,"members",userInfoList);
+//			}else{
+//				throw new Exception();
+//			}
+//		} catch (Exception e) {
+//			responseWriter(code, msg, response);
+//		}
+//		logger.info("phone:{},code:{},msg:{}",phone,code,msg);
+//	}
 	
 }
