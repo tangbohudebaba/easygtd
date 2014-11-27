@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.nationsky.backstage.business.common.BusinessBaseAction;
+import com.nationsky.backstage.business.v1.bsc.dao.po.Notify;
 import com.nationsky.backstage.business.v1.bsc.dao.po.TaskInfo;
 import com.nationsky.backstage.core.Factor;
 import com.nationsky.backstage.core.Factor.C;
@@ -183,7 +184,7 @@ public class TaskAction extends BusinessBaseAction {
 			commonService.update(taskInfo);
 			code = "0";
 			msg = "";
-			responseWriter(response);
+			responseWriter(response,"taskId",taskInfo.getId());
 		} catch (Exception e) {
 			responseWriter(code, msg, response);
 		}
@@ -209,14 +210,14 @@ public class TaskAction extends BusinessBaseAction {
 			msg = "";
 			commonService.create(taskInfo);
 			taskId = taskInfo.getId();
-			responseWriter(response);
+			responseWriter(response,"taskId",taskInfo.getId());
 		} catch (Exception e) {
 			responseWriter(code, msg, response);
 		}
 		logger.info("taskId:{} , userId:{},code:{},msg:{}",taskId,userId,code,msg);
 	}
 	
-	//推出任务
+	//退出任务
 	@RequestMapping(value = "/exit", method = RequestMethod.POST)
 	public void exit(HttpServletRequest request,HttpServletResponse response) {
 		String code = "8", msg = "提交失败";//错误默认值
@@ -226,7 +227,7 @@ public class TaskAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(userId)||ValidateUtil.isNull(taskId)){
 				throw new Exception();
 			}
-			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class,Factor.create("id", C.Or, Integer.parseInt(taskId)));
+			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class,Factor.create("id", C.Eq, Integer.parseInt(taskId)));
 			if(taskInfo == null){
 				throw new Exception();
 			}
@@ -260,7 +261,7 @@ public class TaskAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(userId)||ValidateUtil.isNull(taskId)){
 				throw new Exception();
 			}
-			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class,Factor.create("id", C.Or, Integer.parseInt(taskId)));
+			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class,Factor.create("id", C.Eq, Integer.parseInt(taskId)));
 			if(taskInfo == null){
 				throw new Exception();
 			}
@@ -294,7 +295,7 @@ public class TaskAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(userId)||ValidateUtil.isNull(taskId)){
 				throw new Exception();
 			}
-			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class,Factor.create("id", C.Or, Integer.parseInt(taskId)));
+			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class,Factor.create("id", C.Eq, Integer.parseInt(taskId)));
 			if(taskInfo == null){
 				throw new Exception();
 			}

@@ -46,7 +46,7 @@ public class UserInfo extends PO {
 	private String password;//用户密码：MD5
 	private String headURL;//用户头像图片url
 	private String phone;//用户手机号
-	private String buddyUserIds;
+	private String buddyUserIds;//好友userID,空格分开
 	private Timestamp createdAt = new Timestamp(System.currentTimeMillis());//用户创建时间
 	private Timestamp updatedAt = new Timestamp(System.currentTimeMillis());//用户信息更新时间
 	

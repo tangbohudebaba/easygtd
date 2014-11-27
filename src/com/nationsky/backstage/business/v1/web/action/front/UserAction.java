@@ -1,6 +1,7 @@
 package com.nationsky.backstage.business.v1.web.action.front;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -16,7 +17,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.nationsky.backstage.business.common.BusinessBaseAction;
 import com.nationsky.backstage.business.common.JavaSmsApi;
+import com.nationsky.backstage.business.common.NotifyTypeEnum;
 import com.nationsky.backstage.business.v1.bsc.dao.po.AuthCode;
+import com.nationsky.backstage.business.v1.bsc.dao.po.Notify;
 import com.nationsky.backstage.business.v1.bsc.dao.po.UserInfo;
 import com.nationsky.backstage.core.Factor;
 import com.nationsky.backstage.core.Factor.C;
@@ -179,37 +182,223 @@ public class UserAction extends BusinessBaseAction {
 		logger.info("phone:{},code:{},msg:{}",phone,code,msg);
 	}
 	
-//	/**
-//	 * 获取好友列表
-//	 * @param request
-//	 * @param response
-//	 */
-//	@RequestMapping(value = "getBuddyList", method = RequestMethod.POST)
-//	public void getBuddyList(HttpServletRequest request,HttpServletResponse response) {
-//		String code = "8", msg = "提交失败";//错误默认值
-//		String userId = request.getParameter("userId");
-//		try {
-//			if(ValidateUtil.isNull(userId)){
-//				throw new Exception();
-//			}
-//			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, userId));
-//			if(userInfo==null){
-//				List<UserInfo> userInfoList = commonService.findList(UserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("", C.In, value));
-//				userInfo = new UserInfo();
-//				userInfo.setPhone(phone);
-//				userInfo.setName(name);
-//				userInfo.setPassword(password);
-//				commonService.create(userInfo);
-//				code = "0";
-//				msg = "";
-//				responseWriter(response,"members",userInfoList);
-//			}else{
-//				throw new Exception();
-//			}
-//		} catch (Exception e) {
-//			responseWriter(code, msg, response);
-//		}
-//		logger.info("phone:{},code:{},msg:{}",phone,code,msg);
-//	}
+	/**
+	 * 17获取好友列表
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "getBuddyList", method = RequestMethod.POST)
+	public void getBuddyList(HttpServletRequest request,HttpServletResponse response) {
+		String code = "8", msg = "提交失败";//错误默认值
+		String userId = request.getParameter("userId");
+		try {
+			if(ValidateUtil.isNull(userId)){
+				throw new Exception();
+			}
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, userId));
+			
+			if(userInfo != null){
+				List<UserInfo> userInfoList = new ArrayList<UserInfo>();
+				String buddyUserIds = userInfo.getBuddyUserIds();
+				if(ValidateUtil.isNotNull(buddyUserIds)){
+					userInfoList = commonService.findList(UserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("id", C.In, buddyUserIds.split(" ")));
+				}
+				code = "0";
+				msg = "";
+				responseWriter(response,"members",userInfoList);
+			}else{
+				throw new Exception();
+			}
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
+		}
+		logger.info("code:{},msg:{}",code,msg);
+	}
 	
+	/**
+	 * 18.	搜索人员
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "searchPerson", method = RequestMethod.POST)
+	public void searchPerson(HttpServletRequest request,HttpServletResponse response) {
+		String code = "8", msg = "提交失败";//错误默认值
+		String userId = request.getParameter("userId");
+		String keyword = request.getParameter("keyword");
+		try {
+			if(ValidateUtil.isNull(userId) && ValidateUtil.isNull(keyword)){
+				throw new Exception();
+			}
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, userId));
+			List<UserInfo> userInfoList = null;
+			if(userInfo != null){
+				if(keyword.matches("((\\d{11})|^((\\d{7,8})|(\\d{4}|\\d{3})-(\\d{7,8})|(\\d{4}|\\d{3})-(\\d{7,8})-(\\d{4}|\\d{3}|\\d{2}|\\d{1})|(\\d{7,8})-(\\d{4}|\\d{3}|\\d{2}|\\d{1}))$)")){
+					userInfoList = commonService.findList(UserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("phone", C.Eq, keyword));
+				}else{
+					userInfoList = commonService.findList(UserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("name", C.Like, "%"+keyword+"%"));
+				}
+				code = "0";
+				msg = "";
+				responseWriter(response,"members",userInfoList);
+			}else{
+				throw new Exception();
+			}
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
+		}
+		logger.info("code:{},msg:{}",code,msg);
+	}
+	
+	/**
+	 * 19.	添加好友(待完善)
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "addBuddy", method = RequestMethod.POST)
+	public void addBuddy(HttpServletRequest request,HttpServletResponse response) {
+		String code = "8", msg = "提交失败";//错误默认值
+		String userId = request.getParameter("userId");
+		String buddyUserId = request.getParameter("buddyUserId");
+		try {
+			if(ValidateUtil.isNull(userId) && ValidateUtil.isNull(buddyUserId)){
+				throw new Exception();
+			}
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, userId));
+			UserInfo buddyuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, buddyUserId));
+			if(userInfo != null && buddyuserInfo != null){
+				code = "0";
+				msg = "";
+				responseWriter(response);
+			}else{
+				throw new Exception();
+			}
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
+		}
+		logger.info("code:{},msg:{}, userId:{},buddyUserId:{}", code, msg, userId, buddyUserId);
+	}
+	
+	/**
+	 *20.	邀请好友
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "inviteBuddy", method = RequestMethod.POST)
+	public void inviteBuddy(HttpServletRequest request,HttpServletResponse response) {
+		String code = "8", msg = "提交失败";//错误默认值
+		String userId = request.getParameter("userId");
+		String buddyUserId = request.getParameter("buddyUserId");
+		try {
+			if(ValidateUtil.isNull(userId) && ValidateUtil.isNull(buddyUserId)){
+				throw new Exception();
+			}
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, userId));
+			UserInfo buddyuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, buddyUserId));
+			if(userInfo != null && buddyuserInfo == null){
+				code = "0";
+				msg = "";
+				responseWriter(response);
+			}else{
+				throw new Exception();
+			}
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
+		}
+		logger.info("code:{},msg:{}, userId:{},buddyUserId:{}", code, msg, userId, buddyUserId);
+	}
+	
+	/**
+	 *21.	同意拒绝添加好友
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "agreeOrRejectBuddy", method = RequestMethod.POST)
+	public void agreeOrRejectBuddy(HttpServletRequest request,HttpServletResponse response) {
+		String code = "8", msg = "提交失败";//错误默认值
+		String userId = request.getParameter("userId");
+		String buddyUserId = request.getParameter("buddyUserId");
+		String isAgree = request.getParameter("isAgree");//是否同意，ture为同意
+		try {
+			if(ValidateUtil.isNull(userId) && ValidateUtil.isNull(buddyUserId)){
+				throw new Exception();
+			}
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, userId));
+			UserInfo buddyuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, buddyUserId));
+			if(userInfo != null && buddyuserInfo != null){
+				code = "0";
+				msg = "";
+				responseWriter(response);
+			}else{
+				throw new Exception();
+			}
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
+		}
+		logger.info("code:{},msg:{}, userId:{},buddyUserId:{},isAgree:{}", code, msg, userId, buddyUserId, isAgree);
+	}
+	
+	/**
+	 *22.	获取邀请列表(别人请求加我为好友的通知列表)
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "getInviteList", method = RequestMethod.POST)
+	public void getInviteList(HttpServletRequest request,HttpServletResponse response) {
+		String code = "8", msg = "提交失败";//错误默认值
+		String userId = request.getParameter("userId");
+		try {
+			if(ValidateUtil.isNull(userId)){
+				throw new Exception();
+			}
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, userId));
+			if(userInfo != null){
+				List<Notify> notifyList = commonService.findList(Notify.class, 0, Integer.MAX_VALUE, "updatedAt:desc", Factor.create("userId", C.Eq, Integer.parseInt(userId)), Factor.create("type", C.Eq, NotifyTypeEnum.getIndex(7)));
+				code = "0";
+				msg = "";
+				responseWriter(response,"notifications",notifyList);
+			}else{
+				throw new Exception();
+			}
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
+		}
+		logger.info("code:{},msg:{}, userId:{}", code, msg, userId);
+	}
+	
+	/**
+	 *23.	查询人员某个时间段内是否有任务
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "findTimeBucketTasks", method = RequestMethod.POST)
+	public void findTimeBucketTasks(HttpServletRequest request,HttpServletResponse response) {
+//		todu
+		String code = "8", msg = "提交失败";//错误默认值
+		String userId = request.getParameter("userId");
+		String buddyUserId = request.getParameter("buddyUserId");
+		String isAgree = request.getParameter("isAgree");//是否同意，ture为同意
+		try {
+			if(ValidateUtil.isNull(userId) && ValidateUtil.isNull(buddyUserId)){
+				throw new Exception();
+			}
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, userId));
+			UserInfo buddyuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, buddyUserId));
+			if(userInfo != null && buddyuserInfo != null){
+				code = "0";
+				msg = "";
+				responseWriter(response);
+			}else{
+				throw new Exception();
+			}
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
+		}
+		logger.info("code:{},msg:{}, userId:{},msg:{}",userId,buddyUserId);
+	}
+	
+	public static void main(String[] args) {
+		
+		boolean b = "18711866642".matches("((\\d{11})|^((\\d{7,8})|(\\d{4}|\\d{3})-(\\d{7,8})|(\\d{4}|\\d{3})-(\\d{7,8})-(\\d{4}|\\d{3}|\\d{2}|\\d{1})|(\\d{7,8})-(\\d{4}|\\d{3}|\\d{2}|\\d{1}))$)");
+				System.out.println(b);
+	}
 }

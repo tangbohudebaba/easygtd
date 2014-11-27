@@ -4,8 +4,6 @@ import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-import com.nationsky.backstage.business.v1.bsc.dao.po.TaskInfo;
-
 import net.sf.ezmorph.MorphException;
 import net.sf.ezmorph.object.AbstractObjectMorpher;
 import net.sf.json.JSONObject;
@@ -57,4 +55,12 @@ public class TimestampMorpher extends AbstractObjectMorpher {
 		return String.class.isAssignableFrom(clazz);
 	}
 
+	public static Object jsonToBean(Class<?> beanClass, String jsonStr, String...patterns){
+		if(ValidateUtil.isNullArray(patterns)){
+			patterns = new String[]{"yyyy-MM-dd HH:mm:ss"};
+		}
+		JSONUtils.getMorpherRegistry().registerMorpher(new TimestampMorpher(patterns));
+		return JSONObject.toBean(JSONObject.fromObject(jsonStr), beanClass);
+	}
+	
 }

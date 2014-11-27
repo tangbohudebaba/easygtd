@@ -13,5 +13,5 @@ import com.nationsky.backstage.core.Constants;
  * Version 0.1
  */
 public interface SecurityConstants extends Constants {
-
+	
 }
