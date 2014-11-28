@@ -1,6 +1,5 @@
 package com.nationsky.backstage.business.v1.web.action.front;
 
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
@@ -8,7 +7,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.sf.json.JSONObject;
-import net.sf.json.JsonConfig;
 import net.sf.json.util.JSONUtils;
 
 import org.slf4j.Logger;
@@ -18,11 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.nationsky.backstage.business.common.BusinessBaseAction;
-import com.nationsky.backstage.business.v1.bsc.dao.po.Notify;
 import com.nationsky.backstage.business.v1.bsc.dao.po.TaskInfo;
 import com.nationsky.backstage.core.Factor;
 import com.nationsky.backstage.core.Factor.C;
-import com.nationsky.backstage.util.DateJsonValueProcessorUtil;
 import com.nationsky.backstage.util.DateUtil;
 import com.nationsky.backstage.util.TimestampMorpher;
 import com.nationsky.backstage.util.ValidateUtil;
@@ -42,8 +38,9 @@ public class TaskAction extends BusinessBaseAction {
 				throw new Exception();
 			}
 			DateUtil.getDate(new Date());
-			Factor[] factorOrs = new Factor[]{Factor.create("endTime", C.Lt, System.currentTimeMillis()),Factor.create("beginTime", C.Ge, DateUtil.getDate(new Date()).getTime())};
-			List<TaskInfo> taskInfoList = commonService.findList(TaskInfo.class, 0, Integer.MAX_VALUE, "beginTime:desc", Factor.create("userId", C.Eq, Integer.parseInt(userId)),Factor.create(null, C.Or, factorOrs),Factor.create("isDone", C.Ne, 0));
+//			Factor[] factorOrs = new Factor[]{Factor.create("endTime", C.Lt, System.currentTimeMillis()),Factor.create("beginTime", C.Ge, DateUtil.getDate(new Date()).getTime())};
+//			List<TaskInfo> taskInfoList = commonService.findList(TaskInfo.class, 0, Integer.MAX_VALUE, "beginTime:desc", Factor.create("userId", C.Eq, Integer.parseInt(userId)),Factor.create(null, C.Or, factorOrs),Factor.create("isDone", C.Ne, 0));
+			List<TaskInfo> taskInfoList = commonService.findList(TaskInfo.class, 0, Integer.MAX_VALUE, "beginTime:desc");
 			code = "0";
 			msg = "";
 			responseWriter(response, "tasks", taskInfoList);

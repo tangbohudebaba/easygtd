@@ -41,6 +41,7 @@ public class DateJsonValueProcessorUtil implements JsonValueProcessor {
 		return process(value);
 	}
 	private Object process(Object value){
+		if(value == null)return null;
 		return dateFormat.format((Date)value);
 	}
 	
@@ -81,7 +82,4 @@ public class DateJsonValueProcessorUtil implements JsonValueProcessor {
 		return ResponseMessageJsonObject.toString();
 	}
 
-	
-	
-	
 }
