@@ -1,5 +1,6 @@
 package com.nationsky.backstage.business.v1.web.action.front;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -16,9 +17,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.nationsky.backstage.business.common.BusinessBaseAction;
+import com.nationsky.backstage.business.v1.bsc.dao.po.Notify;
 import com.nationsky.backstage.business.v1.bsc.dao.po.TaskInfo;
+import com.nationsky.backstage.business.v1.bsc.dao.po.TaskInfoAndUserInfo;
+import com.nationsky.backstage.business.v1.bsc.dao.po.UserInfo;
 import com.nationsky.backstage.core.Factor;
 import com.nationsky.backstage.core.Factor.C;
+import com.nationsky.backstage.util.DateJsonValueProcessorUtil;
 import com.nationsky.backstage.util.DateUtil;
 import com.nationsky.backstage.util.TimestampMorpher;
 import com.nationsky.backstage.util.ValidateUtil;
@@ -40,7 +45,28 @@ public class TaskAction extends BusinessBaseAction {
 			DateUtil.getDate(new Date());
 //			Factor[] factorOrs = new Factor[]{Factor.create("endTime", C.Lt, System.currentTimeMillis()),Factor.create("beginTime", C.Ge, DateUtil.getDate(new Date()).getTime())};
 //			List<TaskInfo> taskInfoList = commonService.findList(TaskInfo.class, 0, Integer.MAX_VALUE, "beginTime:desc", Factor.create("userId", C.Eq, Integer.parseInt(userId)),Factor.create(null, C.Or, factorOrs),Factor.create("isDone", C.Ne, 0));
-			List<TaskInfo> taskInfoList = commonService.findList(TaskInfo.class, 0, Integer.MAX_VALUE, "beginTime:desc");
+			List<TaskInfo> taskInfoList = new ArrayList<TaskInfo>();
+			List<TaskInfoAndUserInfo> taskInfoAndUserInfoList = commonService.findList(TaskInfoAndUserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("userId", C.Eq, Integer.parseInt(userId)), Factor.create("isAgree", C.Eq, 1));
+			for (TaskInfoAndUserInfo taskInfoAndUserInfo : taskInfoAndUserInfoList) {
+				TaskInfo taskInfo = commonService.getUnique(TaskInfo.class, Factor.create("id", C.Eq, taskInfoAndUserInfo.getTaskId()));
+				taskInfo.setIsDone(taskInfoAndUserInfo.getIsDone());
+				taskInfo.setIsFlag(taskInfoAndUserInfo.getIsFlag());
+				if(taskInfo.getIsHasMembers()==1){
+					StringBuffer memberUserIds = new StringBuffer();
+					List<TaskInfoAndUserInfo> taskInfoAndUserInfoList1 = commonService.findList(TaskInfoAndUserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("taskId", C.Eq, taskInfo.getId()), Factor.create("isAgree", C.Eq, 1));
+					for (int i = 0; i < taskInfoAndUserInfoList1.size(); i++) {
+						TaskInfoAndUserInfo taskInfoAndUserInfo1 = taskInfoAndUserInfoList1.get(i);
+						if(i==taskInfoAndUserInfoList1.size()-1){
+							memberUserIds.append(taskInfoAndUserInfo1.getUserId());
+						}else{
+							memberUserIds.append(taskInfoAndUserInfo1.getUserId()+",");
+						}
+					}
+					taskInfo.setMemberUserIds(memberUserIds.toString());
+				}
+				taskInfoList.add(taskInfo);
+			}
+			
 			code = "0";
 			msg = "";
 			responseWriter(response, "tasks", taskInfoList);
@@ -50,7 +76,7 @@ public class TaskAction extends BusinessBaseAction {
 		logger.info("userId:{},code:{},msg:{}",userId,code,msg);
 	}
 	
-	//做完任务
+	//完成做完任务
 	@RequestMapping(value = "/done", method = RequestMethod.POST)
 	public void done(HttpServletRequest request,HttpServletResponse response) {
 		String code = "8", msg = "提交做完任务失败";//错误默认值
@@ -60,12 +86,22 @@ public class TaskAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(userId)||ValidateUtil.isNull(taskId)){
 				throw new Exception();
 			}
-			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class, Factor.create("userId", C.Eq, Integer.parseInt(userId)),Factor.create("id", C.Or, Integer.parseInt(taskId)));
-			if(taskInfo == null){
+			TaskInfoAndUserInfo taskInfoAndUserInfo = commonService.getUnique(TaskInfoAndUserInfo.class, Factor.create("userId", C.Eq, Integer.parseInt(userId)),Factor.create("taskId", C.Eq, Integer.parseInt(taskId)));
+			if(taskInfoAndUserInfo == null){
 				throw new Exception();
 			}
-			taskInfo.setIsDone(0);
-			commonService.update(taskInfo);
+			taskInfoAndUserInfo.setIsDone(1);
+			commonService.update(taskInfoAndUserInfo);
+			//生成通知
+			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class, Factor.create("id", C.Eq, Integer.parseInt(taskId)));
+			if(Integer.parseInt(userId) != taskInfo.getCreaterUserId()){
+				Notify notify = new Notify();
+				notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
+				notify.setTaskId(Integer.parseInt(taskId));
+				notify.setType(5);
+				notify.setUserId(taskInfo.getCreaterUserId());//被通知用户ID
+				commonService.create(notify);
+			}
 			code = "0";
 			msg = "";
 			responseWriter(response);
@@ -86,12 +122,12 @@ public class TaskAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(userId)||ValidateUtil.isNull(taskId)||ValidateUtil.isNull(isFlag)){
 				throw new Exception();
 			}
-			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class, Factor.create("userId", C.Eq, Integer.parseInt(userId)),Factor.create("id", C.Or, Integer.parseInt(taskId)));
-			if(taskInfo == null){
+			TaskInfoAndUserInfo taskInfoAndUserInfo = commonService.getUnique(TaskInfoAndUserInfo.class, Factor.create("userId", C.Eq, Integer.parseInt(userId)),Factor.create("taskId", C.Eq, Integer.parseInt(taskId)));
+			if(taskInfoAndUserInfo == null){
 				throw new Exception();
 			}
-			taskInfo.setIsFlag(Integer.parseInt(isFlag));;
-			commonService.update(taskInfo);
+			taskInfoAndUserInfo.setIsFlag(Integer.parseInt(isFlag));;
+			commonService.update(taskInfoAndUserInfo);
 			code = "0";
 			msg = "";
 			responseWriter(response);
@@ -111,11 +147,22 @@ public class TaskAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(userId)||ValidateUtil.isNull(taskId)){
 				throw new Exception();
 			}
-			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class, Factor.create("userId", C.Eq, Integer.parseInt(userId)),Factor.create("id", C.Or, Integer.parseInt(taskId)));
-			if(taskInfo == null){
+			List<TaskInfoAndUserInfo> taskInfoAndUserInfoList = commonService.findList(TaskInfoAndUserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("taskId", C.Eq, Integer.parseInt(taskId)));
+			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class,Factor.create("id", C.Eq, Integer.parseInt(taskId)),Factor.create("createrUserId", C.Eq, Integer.parseInt(userId)));
+			if(taskInfoAndUserInfoList == null || taskInfo == null){
 				throw new Exception();
 			}
 			commonService.remove(taskInfo);
+			for (TaskInfoAndUserInfo taskInfoAndUserInfo : taskInfoAndUserInfoList) {
+				commonService.remove(taskInfoAndUserInfo);
+				//生成通知
+				Notify notify = new Notify();
+				notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
+				notify.setTaskId(Integer.parseInt(taskId));
+				notify.setType(4);
+				notify.setUserId(taskInfoAndUserInfo.getUserId());//被通知用户ID
+				commonService.create(notify);
+			}
 			code = "0";
 			msg = "";
 			responseWriter(response);
@@ -139,6 +186,26 @@ public class TaskAction extends BusinessBaseAction {
 			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class,Factor.create("id", C.Eq, Integer.parseInt(taskId)));
 			if(taskInfo == null){
 				throw new Exception();
+			}
+			TaskInfoAndUserInfo taskInfoAndUserInfo = commonService.getUnique(TaskInfoAndUserInfo.class, Factor.create("userId", C.Eq, Integer.parseInt(userId)),  Factor.create("taskId", C.Eq, Integer.parseInt(taskId)), Factor.create("isAgree", C.Eq, 1));
+			taskInfo.setIsDone(taskInfoAndUserInfo.getIsDone());
+			taskInfo.setIsFlag(taskInfoAndUserInfo.getIsFlag());
+			List<UserInfo> userInfoList = null;
+			if(taskInfo.getIsHasMembers()==1){
+				List<TaskInfoAndUserInfo> taskInfoAndUserInfoList1 = commonService.findList(TaskInfoAndUserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("taskId", C.Eq, taskInfo.getId()), Factor.create("isAgree", C.Eq, 1));
+				Integer[] memberUserIds= new Integer[taskInfoAndUserInfoList1.size()];
+				for (int i = 0; i < taskInfoAndUserInfoList1.size(); i++) {
+					TaskInfoAndUserInfo taskInfoAndUserInfo1 = taskInfoAndUserInfoList1.get(i);
+					memberUserIds[i] = taskInfoAndUserInfo1.getUserId();
+				}
+				userInfoList = commonService.findList(UserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("id", C.In, memberUserIds));
+				if(ValidateUtil.isNullCollection(userInfoList)){
+					taskInfo.setMemberUserIds(DateJsonValueProcessorUtil.ObjectToJson(userInfoList));
+				}else{
+					taskInfo.setMemberUserIds("[]");
+				}
+			}else{
+				taskInfo.setMemberUserIds("[]");
 			}
 			code = "0";
 			msg = "";
@@ -176,7 +243,6 @@ public class TaskAction extends BusinessBaseAction {
 			taskInfo.setLocation(newTaskInfo.getLocation());
 			taskInfo.setMemberUserIds(newTaskInfo.getMemberUserIds());
 			taskInfo.setRemark(newTaskInfo.getRemark());
-			taskInfo.setReminderTime(newTaskInfo.getReminderTime());
 			taskInfo.setTitle(newTaskInfo.getTitle());
 			commonService.update(taskInfo);
 			code = "0";
@@ -203,10 +269,41 @@ public class TaskAction extends BusinessBaseAction {
 			String[] formats={"yyyy-MM-dd HH:mm:ss"};
 			JSONUtils.getMorpherRegistry().registerMorpher(new TimestampMorpher(formats));
 			taskInfo= (TaskInfo)JSONObject.toBean(JSONObject.fromObject(taskInfoJsonStr), TaskInfo.class);
-			code = "0";
-			msg = "";
+			
+			if(ValidateUtil.isNotNull(taskInfo.getMemberUserIds())){
+				taskInfo.setIsHasMembers(1);
+			}
+			taskInfo.setUserId(Integer.parseInt(userId));
+			taskInfo.setCreaterUserId(Integer.parseInt(userId));
 			commonService.create(taskInfo);
 			taskId = taskInfo.getId();
+			TaskInfoAndUserInfo taskInfoAndUserInfo = new TaskInfoAndUserInfo();
+			taskInfoAndUserInfo.setTaskId(taskId);
+			taskInfoAndUserInfo.setIsAgree(1);
+			taskInfoAndUserInfo.setIsFlag(taskInfo.getIsFlag());
+			taskInfoAndUserInfo.setUserId(taskInfo.getUserId());
+			commonService.create(taskInfoAndUserInfo);
+			
+			if(taskInfo.getIsHasMembers() == 1){
+				String[] memberUserIdStrArray = taskInfo.getMemberUserIds().split(",");
+				for (int i = 0; i < memberUserIdStrArray.length; i++) {
+					taskInfoAndUserInfo = new TaskInfoAndUserInfo();
+					taskInfoAndUserInfo.setTaskId(taskId);
+					taskInfoAndUserInfo.setUserId(Integer.parseInt(memberUserIdStrArray[i]));
+					commonService.create(taskInfoAndUserInfo);
+					//生成通知
+					Notify notify = new Notify();
+					notify.setFromUserId(Integer.parseInt(userId));
+//					notify.setFromUserName(fromUserName);
+					notify.setTaskId(taskId);
+					notify.setType(1);
+					notify.setUserId(Integer.parseInt(memberUserIdStrArray[i]));
+					commonService.create(notify);
+				}
+			}
+			
+			code = "0";
+			msg = "";
 			responseWriter(response,"taskId",taskInfo.getId());
 		} catch (Exception e) {
 			responseWriter(code, msg, response);
@@ -224,20 +321,19 @@ public class TaskAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(userId)||ValidateUtil.isNull(taskId)){
 				throw new Exception();
 			}
-			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class,Factor.create("id", C.Eq, Integer.parseInt(taskId)));
-			if(taskInfo == null){
+			TaskInfoAndUserInfo taskInfoAndUserInfo = commonService.getUnique(TaskInfoAndUserInfo.class, Factor.create("userId", C.Eq, Integer.parseInt(userId)),  Factor.create("taskId", C.Eq, Integer.parseInt(taskId)), Factor.create("isAgree", C.Eq, 1));
+			if(taskInfoAndUserInfo == null){
 				throw new Exception();
 			}
-			String memberUserIds = taskInfo.getMemberUserIds();
-			memberUserIds = memberUserIds.replace(userId, "").replace(",,", ",");
-			if(memberUserIds.startsWith(",")){
-				memberUserIds = memberUserIds.substring(1);
-			}
-			if(memberUserIds.endsWith(",")){
-				memberUserIds = memberUserIds.substring(0, memberUserIds.length()-1);
-			}
-			taskInfo.setMemberUserIds(memberUserIds);
-			commonService.update(taskInfo);
+			commonService.remove(taskInfoAndUserInfo);
+			//生成通知
+			Notify notify = new Notify();
+			notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
+			notify.setTaskId(Integer.parseInt(taskId));
+			notify.setType(9);
+			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class, Factor.create("id", C.Eq, Integer.parseInt(taskId)));
+			notify.setUserId(taskInfo.getCreaterUserId());//被通知用户ID
+			commonService.create(notify);
 			code = "0";
 			msg = "";
 			responseWriter(response);
@@ -248,7 +344,7 @@ public class TaskAction extends BusinessBaseAction {
 	}
 	
 	
-	//拒绝任务(没写呢)
+	//拒绝任务
 	@RequestMapping(value = "/reject", method = RequestMethod.POST)
 	public void reject(HttpServletRequest request,HttpServletResponse response) {
 		String code = "8", msg = "提交失败";//错误默认值
@@ -258,20 +354,19 @@ public class TaskAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(userId)||ValidateUtil.isNull(taskId)){
 				throw new Exception();
 			}
-			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class,Factor.create("id", C.Eq, Integer.parseInt(taskId)));
-			if(taskInfo == null){
+			TaskInfoAndUserInfo taskInfoAndUserInfo = commonService.getUnique(TaskInfoAndUserInfo.class, Factor.create("userId", C.Eq, Integer.parseInt(userId)),  Factor.create("taskId", C.Eq, Integer.parseInt(taskId)), Factor.create("isAgree", C.Eq, 0));
+			if(taskInfoAndUserInfo == null){
 				throw new Exception();
 			}
-			String memberUserIds = taskInfo.getMemberUserIds();
-			memberUserIds = memberUserIds.replace(userId, "").replace(",,", ",");
-			if(memberUserIds.startsWith(",")){
-				memberUserIds = memberUserIds.substring(1);
-			}
-			if(memberUserIds.endsWith(",")){
-				memberUserIds = memberUserIds.substring(0, memberUserIds.length()-1);
-			}
-			taskInfo.setMemberUserIds(memberUserIds);
-			commonService.update(taskInfo);
+			commonService.remove(taskInfoAndUserInfo);
+			//生成通知
+			Notify notify = new Notify();
+			notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
+			notify.setTaskId(Integer.parseInt(taskId));
+			notify.setType(2);
+			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class, Factor.create("id", C.Eq, Integer.parseInt(taskId)));
+			notify.setUserId(taskInfo.getCreaterUserId());//被通知用户ID
+			commonService.create(notify);
 			code = "0";
 			msg = "";
 			responseWriter(response);
@@ -282,7 +377,7 @@ public class TaskAction extends BusinessBaseAction {
 	}
 	
 	
-	//同意任务(没写)
+	//同意任务
 	@RequestMapping(value = "/agree", method = RequestMethod.POST)
 	public void agree(HttpServletRequest request,HttpServletResponse response) {
 		String code = "8", msg = "提交失败";//错误默认值
@@ -292,10 +387,20 @@ public class TaskAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(userId)||ValidateUtil.isNull(taskId)){
 				throw new Exception();
 			}
-			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class,Factor.create("id", C.Eq, Integer.parseInt(taskId)));
-			if(taskInfo == null){
+			TaskInfoAndUserInfo taskInfoAndUserInfo = commonService.getUnique(TaskInfoAndUserInfo.class, Factor.create("userId", C.Eq, Integer.parseInt(userId)),  Factor.create("taskId", C.Eq, Integer.parseInt(taskId)), Factor.create("isAgree", C.Eq, 0));
+			if(taskInfoAndUserInfo == null){
 				throw new Exception();
 			}
+			taskInfoAndUserInfo.setIsAgree(1);
+			commonService.update(taskInfoAndUserInfo);
+			//生成通知
+			Notify notify = new Notify();
+			notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
+			notify.setTaskId(Integer.parseInt(taskId));
+			notify.setType(3);
+			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class, Factor.create("id", C.Eq, Integer.parseInt(taskId)));
+			notify.setUserId(taskInfo.getCreaterUserId());//被通知用户ID
+			commonService.create(notify);
 			code = "0";
 			msg = "";
 			responseWriter(response);

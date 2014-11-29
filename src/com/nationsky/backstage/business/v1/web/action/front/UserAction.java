@@ -195,13 +195,19 @@ public class UserAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(userId)){
 				throw new Exception();
 			}
-			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, userId));
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
 			
 			if(userInfo != null){
 				List<UserInfo> userInfoList = new ArrayList<UserInfo>();
 				String buddyUserIds = userInfo.getBuddyUserIds();
 				if(ValidateUtil.isNotNull(buddyUserIds)){
-					userInfoList = commonService.findList(UserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("id", C.In, buddyUserIds.split(" ")));
+					buddyUserIds = buddyUserIds.trim();
+					String[] buddyUserIdStrArray = buddyUserIds.split(" ");
+					Integer[] buddyUserIdArray = new Integer[buddyUserIdStrArray.length];
+					for (int i = 0; i < buddyUserIdStrArray.length; i++) {
+						buddyUserIdArray[i] =Integer.parseInt(buddyUserIdStrArray[i]);
+					}
+					userInfoList = commonService.findList(UserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("id", C.In, buddyUserIdArray));
 				}
 				code = "0";
 				msg = "";
@@ -229,7 +235,7 @@ public class UserAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(userId) && ValidateUtil.isNull(keyword)){
 				throw new Exception();
 			}
-			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, userId));
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
 			List<UserInfo> userInfoList = null;
 			if(userInfo != null){
 				if(keyword.matches("((\\d{11})|^((\\d{7,8})|(\\d{4}|\\d{3})-(\\d{7,8})|(\\d{4}|\\d{3})-(\\d{7,8})-(\\d{4}|\\d{3}|\\d{2}|\\d{1})|(\\d{7,8})-(\\d{4}|\\d{3}|\\d{2}|\\d{1}))$)")){
@@ -263,9 +269,15 @@ public class UserAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(userId) && ValidateUtil.isNull(buddyUserId)){
 				throw new Exception();
 			}
-			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, userId));
-			UserInfo buddyuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, buddyUserId));
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
+			UserInfo buddyuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(buddyUserId)));
 			if(userInfo != null && buddyuserInfo != null){
+				//生成通知
+				Notify notify = new Notify();
+				notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
+				notify.setType(7);
+				notify.setUserId(Integer.parseInt(buddyUserId));//被通知用户ID
+				commonService.create(notify);
 				code = "0";
 				msg = "";
 				responseWriter(response);
@@ -292,8 +304,8 @@ public class UserAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(userId) && ValidateUtil.isNull(buddyUserId)){
 				throw new Exception();
 			}
-			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, userId));
-			UserInfo buddyuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, buddyUserId));
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
+			UserInfo buddyuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(buddyUserId)));
 			if(userInfo != null && buddyuserInfo == null){
 				code = "0";
 				msg = "";
@@ -322,9 +334,19 @@ public class UserAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(userId) && ValidateUtil.isNull(buddyUserId)){
 				throw new Exception();
 			}
-			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, userId));
-			UserInfo buddyuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, buddyUserId));
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
+			UserInfo buddyuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(buddyUserId)));
 			if(userInfo != null && buddyuserInfo != null){
+				//生成通知
+				Notify notify = new Notify();
+				notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
+				if(ValidateUtil.isEquals("true", isAgree)){
+					notify.setType(10);
+				}else{
+					notify.setType(11);
+				}
+				notify.setUserId(Integer.parseInt(buddyUserId));//被通知用户ID
+				commonService.create(notify);
 				code = "0";
 				msg = "";
 				responseWriter(response);
@@ -350,7 +372,7 @@ public class UserAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(userId)){
 				throw new Exception();
 			}
-			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, userId));
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
 			if(userInfo != null){
 				List<Notify> notifyList = commonService.findList(Notify.class, 0, Integer.MAX_VALUE, "updatedAt:desc", Factor.create("userId", C.Eq, Integer.parseInt(userId)), Factor.create("type", C.Eq, NotifyTypeEnum.getIndex(7)));
 				code = "0";
@@ -372,7 +394,6 @@ public class UserAction extends BusinessBaseAction {
 	 */
 	@RequestMapping(value = "findTimeBucketTasks", method = RequestMethod.POST)
 	public void findTimeBucketTasks(HttpServletRequest request,HttpServletResponse response) {
-//		todu
 		String code = "8", msg = "提交失败";//错误默认值
 		String userId = request.getParameter("userId");
 		String buddyUserId = request.getParameter("buddyUserId");
@@ -381,8 +402,8 @@ public class UserAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(userId) && ValidateUtil.isNull(buddyUserId)){
 				throw new Exception();
 			}
-			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, userId));
-			UserInfo buddyuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, buddyUserId));
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
+			UserInfo buddyuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(buddyUserId)));
 			if(userInfo != null && buddyuserInfo != null){
 				code = "0";
 				msg = "";

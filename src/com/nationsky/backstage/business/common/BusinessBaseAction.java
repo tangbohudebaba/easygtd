@@ -75,7 +75,9 @@ public abstract class BusinessBaseAction extends BaseAction{
 			if(ValidateUtil.isNotNull(msg)){
 				responseMessage.setMsg(msg);
 			}
-			response.getWriter().write(DateJsonValueProcessorUtil.secondJsonJoint(responseMessage,accumulateKey,child));
+			String responseJsonStr = DateJsonValueProcessorUtil.secondJsonJoint(responseMessage,accumulateKey,child);
+			logger.debug(responseJsonStr);
+			response.getWriter().write(responseJsonStr);
 			return true;
 		} catch (IOException e) {
 			logger.error(e.toString());

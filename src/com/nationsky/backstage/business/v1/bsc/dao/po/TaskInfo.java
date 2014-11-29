@@ -14,6 +14,7 @@ import javax.persistence.Table;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.GenericGenerator;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.nationsky.backstage.core.PO;
 import com.nationsky.backstage.core.bsc.CRUD;
@@ -34,14 +35,14 @@ public class TaskInfo extends PO {
 	private String title;//任务标题
 	private Long beginTime;//开始时间戳GTM毫秒数
 	private Long endTime;//结束时间戳GTM毫秒数
-	private Integer reminderTime;//提醒时间分钟数
 	private String location;//地理位置经纬度
-	private Integer isHasMembers = 0;//是否有成员 0有成员 1无成员
-	private Integer isDone = 0;//是否已完成 0已完成 1没完成
-	private Integer isFlag = 0;//是否已星标 0是星标任务 1不是星标任务
-	private Integer userId;//创建任务的用户ID
+	private Integer isHasMembers = 0;//是否有成员 0无成员 1有成员
+	private Integer isDone = 0;//是否已完成 0未完成 1已经完成
+	private Integer isFlag = 0;//是否已星标 0不是星标任务 1是星标任务
+	private Integer userId;//当前用户ID
 	private String memberUserIds;//成员用户IDs,英文半角逗号分割
 	private String remark;//备注
+	private Integer createrUserId;//创建任务用户ID
 	private Timestamp createdAt = new Timestamp(System.currentTimeMillis());//任务创建时间
 	private Timestamp updatedAt = new Timestamp(System.currentTimeMillis());//任务更新时间
 	
@@ -78,14 +79,6 @@ public class TaskInfo extends PO {
 		this.endTime = endTime;
 	}
 
-	public Integer getReminderTime() {
-		return reminderTime;
-	}
-
-	public void setReminderTime(Integer reminderTime) {
-		this.reminderTime = reminderTime;
-	}
-
 	public String getLocation() {
 		return location;
 	}
@@ -102,6 +95,7 @@ public class TaskInfo extends PO {
 		this.isHasMembers = isHasMembers;
 	}
 
+	@Transactional
 	public Integer getIsDone() {
 		return isDone;
 	}
@@ -110,6 +104,7 @@ public class TaskInfo extends PO {
 		this.isDone = isDone;
 	}
 
+	@Transactional
 	public Integer getIsFlag() {
 		return isFlag;
 	}
@@ -134,6 +129,7 @@ public class TaskInfo extends PO {
 		this.updatedAt = updatedAt;
 	}
 
+	@Transactional
 	public Integer getUserId() {
 		return userId;
 	}
@@ -142,6 +138,7 @@ public class TaskInfo extends PO {
 		this.userId = userId;
 	}
 
+	@Transactional
 	public String getMemberUserIds() {
 		return memberUserIds;
 	}
@@ -158,6 +155,12 @@ public class TaskInfo extends PO {
 		this.remark = remark;
 	}
 	
+	public Integer getCreaterUserId() {
+		return createrUserId;
+	}
 	
+	public void setCreaterUserId(Integer createrUserId) {
+		this.createrUserId = createrUserId;
+	}
 	
 }

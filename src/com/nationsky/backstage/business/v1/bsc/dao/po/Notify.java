@@ -14,7 +14,6 @@ import javax.persistence.Table;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.GenericGenerator;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.nationsky.backstage.core.PO;
 import com.nationsky.backstage.core.bsc.CRUD;
@@ -32,7 +31,7 @@ public class Notify extends PO {
 	@GeneratedValue(generator = "generator")
 	@Column(name = "id", unique = true, nullable = false)
 	private Integer id;//通知ID
-	private Integer type;//通知类型 1收到任务邀请类型, 2任务被拒绝类型, 3任务被同意类型, 4任务被删除类型, 5任务已完成类型, 6任务延期类型, 7好友添加通知, 8任务修改类型, 9退出任务类型, 
+	private Integer type;//通知类型 1收到任务邀请类型, 2任务被拒绝类型, 3任务被同意类型, 4任务被删除类型, 5任务已完成类型, 6任务延期类型(还没写), 7好友添加通知, 8任务修改类型(还没写), 9退出任务类型, 10同意好友添加通知, 11拒绝好友添加通知 
 	private Integer taskId;//任务ID
 	private Integer userId;//被通知用户ID
 	private Integer fromUserId;//来源人员Id
