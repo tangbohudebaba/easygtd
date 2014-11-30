@@ -21,11 +21,11 @@ public class CommonTest {
 //		getSetInfo();
 //		getUserInfo();
 //		getInfo();
-		create();
+//		create();
 //		update();
 //		new Date(System.currentTimeMillis());
 //		System.out.println(System.currentTimeMillis());
-//		getList();
+		getList();
 //		String userId = "1";
 //		String memberUserIds = "22,1,ss,1";
 //		memberUserIds = memberUserIds.replace(userId, "").replace(",,", ",");
@@ -111,7 +111,7 @@ public class CommonTest {
 	//5.	获取任务列表
 	public static void getList(){
 		String childUrl = "task/getList.ac"; 
-		String queryString = "userId=3";
+		String queryString = "userId=2";
 		String result = HttpUtil.getResult(urlStr+childUrl, queryString);
 		System.out.println(result);
 	}

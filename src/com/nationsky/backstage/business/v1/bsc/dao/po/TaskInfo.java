@@ -33,8 +33,8 @@ public class TaskInfo extends PO {
 	@Column(name = "id", unique = true, nullable = false)
 	private Integer id;//任务ID
 	private String title;//任务标题
-	private Long beginTime;//开始时间戳GTM毫秒数
-	private Long endTime;//结束时间戳GTM毫秒数
+	private Long beginTime = 0L;//开始时间戳GTM毫秒数
+	private Long endTime = 0L;//结束时间戳GTM毫秒数
 	private String location;//地理位置经纬度
 	private Integer isHasMembers = 0;//是否有成员 0无成员 1有成员
 	@Transient

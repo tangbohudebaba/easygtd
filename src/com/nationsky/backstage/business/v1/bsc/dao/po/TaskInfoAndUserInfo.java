@@ -34,6 +34,7 @@ public class TaskInfoAndUserInfo extends PO {
 	private Integer userId;//用户ID
 	private Integer taskId;//任务ID
 	private Integer isAgree = 0;//是否已经同意了此任务 0没同意 1同意
+	private Integer delayNotify = 0;//延期通知 0还没通知过  1已经通知过了,不用在通知了
 	
 	public Integer getId() {
 		return id;
@@ -82,4 +83,14 @@ public class TaskInfoAndUserInfo extends PO {
 	public void setIsAgree(Integer isAgree) {
 		this.isAgree = isAgree;
 	}
+
+	public Integer getDelayNotify() {
+		return delayNotify;
+	}
+
+	public void setDelayNotify(Integer delayNotify) {
+		this.delayNotify = delayNotify;
+	}
+	
+	
 }

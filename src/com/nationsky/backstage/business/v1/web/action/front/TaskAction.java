@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.nationsky.backstage.business.common.BusinessBaseAction;
+import com.nationsky.backstage.business.common.BusinessCommonService;
 import com.nationsky.backstage.business.v1.bsc.dao.po.Notify;
 import com.nationsky.backstage.business.v1.bsc.dao.po.TaskInfo;
 import com.nationsky.backstage.business.v1.bsc.dao.po.TaskInfoAndUserInfo;
@@ -42,17 +43,13 @@ public class TaskAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(userId)){
 				throw new Exception();
 			}
-			DateUtil.getDate(new Date());
-//			Factor[] factorOrs = new Factor[]{Factor.create("endTime", C.Lt, System.currentTimeMillis()/1000),Factor.create("beginTime", C.Ge, DateUtil.getDate(new Date()).getTime()/1000)};
-//			List<TaskInfo> taskInfoList = commonService.findList(TaskInfo.class, 0, Integer.MAX_VALUE, "beginTime:desc", Factor.create("userId", C.Eq, Integer.parseInt(userId)),Factor.create(null, C.Or, factorOrs),Factor.create("isDone", C.Ne, 0));
-			List<TaskInfo> taskInfoList = new ArrayList<TaskInfo>();
-			List<TaskInfoAndUserInfo> taskInfoAndUserInfoList = commonService.findList(TaskInfoAndUserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("userId", C.Eq, Integer.parseInt(userId)), Factor.create("isAgree", C.Eq, 1));
-			for (TaskInfoAndUserInfo taskInfoAndUserInfo : taskInfoAndUserInfoList) {
-				Factor[] factorOrs = new Factor[]{Factor.create("endTime", C.Lt, System.currentTimeMillis()/1000),Factor.create("beginTime", C.Ge, DateUtil.getDate(new Date()).getTime()/1000),Factor.create("id", C.Eq, taskInfoAndUserInfo.getTaskId())};
-				TaskInfo taskInfo = commonService.getUnique(TaskInfo.class,factorOrs);
-				if(taskInfo == null){
-					continue;
-				}
+			List<TaskInfo> taskInfoList1 = new ArrayList<TaskInfo>();
+			String hqltmp = "select distinct t from TaskInfo as t, TaskInfoAndUserInfo tu where ((t.id = tu.taskId and tu.isAgree = 1 and tu.isDone = 0 and t.isDelete = 0 and t.endTime != 0 and t.beginTime != 0 and t.endTime < %s ) or (t.id = tu.taskId and tu.isAgree = 1 and t.isDelete = 0  and t.beginTime > %s ) or (t.id = tu.taskId and tu.isAgree = 1 and t.isDelete = 0  and t.endTime = 0 and t.beginTime = 0 )) and tu.userId = %s";
+			String hql = String.format(hqltmp, System.currentTimeMillis()/1000, DateUtil.getDate(new Date()).getTime()/1000, userId);
+			List<TaskInfo> taskInfoList = (List<TaskInfo>)commonService.findList(hql, 0, Integer.MAX_VALUE);
+			for (TaskInfo taskInfo : taskInfoList) {
+				TaskInfoAndUserInfo taskInfoAndUserInfo = commonService.getUnique(TaskInfoAndUserInfo.class, Factor.create("userId", C.Eq, Integer.parseInt(userId)),  Factor.create("taskId", C.Eq, taskInfo.getId()), Factor.create("isAgree", C.Eq, 1));
+				taskInfo.setUserId(Integer.parseInt(userId));
 				taskInfo.setIsDone(taskInfoAndUserInfo.getIsDone());
 				taskInfo.setIsFlag(taskInfoAndUserInfo.getIsFlag());
 				if(taskInfo.getIsHasMembers()==1){
@@ -68,9 +65,8 @@ public class TaskAction extends BusinessBaseAction {
 					}
 					taskInfo.setMemberUserIds(memberUserIds.toString());
 				}
-				taskInfoList.add(taskInfo);
+				taskInfoList1.add(taskInfo);
 			}
-			
 			code = "0";
 			msg = "";
 			responseWriter(response, "tasks", taskInfoList);
