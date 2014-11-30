@@ -18,10 +18,10 @@ public class CommonTest {
 //		setPwd();
 //		findTimeBucketTasks();
 //		getDayTasks();
-		getSetInfo();
+//		getSetInfo();
 //		getUserInfo();
 //		getInfo();
-//		create();
+		create();
 //		update();
 //		new Date(System.currentTimeMillis());
 //		System.out.println(System.currentTimeMillis());
