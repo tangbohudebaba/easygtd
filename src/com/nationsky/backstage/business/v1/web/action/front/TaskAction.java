@@ -205,9 +205,9 @@ public class TaskAction extends BusinessBaseAction {
 				}
 				userInfoList = commonService.findList(UserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("id", C.In, memberUserIds));
 				if(ValidateUtil.isNullCollection(userInfoList)){
-					taskInfo.setMemberUserIds(DateJsonValueProcessorUtil.ObjectToJson(userInfoList));
-				}else{
 					taskInfo.setMemberUserIds("[]");
+				}else{
+					taskInfo.setMemberUserIds(DateJsonValueProcessorUtil.ObjectToJson(userInfoList));
 				}
 			}else{
 				taskInfo.setMemberUserIds("[]");

@@ -17,8 +17,11 @@ public class CommonTest {
 //		submitAuthCode();
 //		setPwd();
 //		findTimeBucketTasks();
+//		getDayTasks();
+		getSetInfo();
+//		getUserInfo();
 //		getInfo();
-		create();
+//		create();
 //		update();
 //		new Date(System.currentTimeMillis());
 //		System.out.println(System.currentTimeMillis());
@@ -37,11 +40,26 @@ public class CommonTest {
 //		String a = HttpUtil.getResult("http://123.57.46.100/easygtd/v1/task/create.ac", null);
 //		System.out.println(a);
 		
-		String a = "1 2";
-		System.out.println(a.split(" ").length);
+//		String a = "1 2";
+		//System.out.println(a.split(" ").length);
 		
 	}
 	
+	//25.	获取设置信息
+	public static void getSetInfo(){
+		String childUrl = "user/getSetInfo.ac";
+		String queryString = "userId=1";
+		String result = HttpUtil.getResult(urlStr+childUrl, queryString);
+		System.out.println(result);
+	}
+	
+	//获取用户信息
+	public static void getUserInfo(){
+		String childUrl = "user/getUserInfo.ac";
+		String queryString = "userId=1";
+		String result = HttpUtil.getResult(urlStr+childUrl, queryString);
+		System.out.println(result);
+	}
 	//登录
 	public static void login(){
 		String childUrl = "user/login.ac";
@@ -82,6 +100,14 @@ public class CommonTest {
 		System.out.println(result);
 	}
 	
+	//24.	获取人员某天任务
+	public static void getDayTasks(){
+		String childUrl = "user/getDayTasks.ac"; 
+		String queryString = "userId=2&buddyUserId=2&date=1317515847";
+		String result = HttpUtil.getResult(urlStr+childUrl, queryString);
+		System.out.println(result);
+	}
+	
 	//5.	获取任务列表
 	public static void getList(){
 		String childUrl = "task/getList.ac"; 
@@ -93,7 +119,7 @@ public class CommonTest {
 	//10.	获取任务详情
 	public static void getInfo(){
 		String childUrl = "task/getInfo.ac";
-		String queryString = "userId=3&taskId=2";
+		String queryString = "userId=2&taskId=1";
 		String result = HttpUtil.getResult(urlStr+childUrl, queryString);
 		System.out.println(result);
 	}

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,10 +18,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.nationsky.backstage.business.common.BusinessBaseAction;
 import com.nationsky.backstage.business.common.JavaSmsApi;
+import com.nationsky.backstage.business.v1.Handler.TaskInfoHandler;
 import com.nationsky.backstage.business.v1.bsc.dao.po.AuthCode;
 import com.nationsky.backstage.business.v1.bsc.dao.po.Notify;
 import com.nationsky.backstage.business.v1.bsc.dao.po.TaskInfo;
-import com.nationsky.backstage.business.v1.bsc.dao.po.TaskInfoAndUserInfo;
 import com.nationsky.backstage.business.v1.bsc.dao.po.UserInfo;
 import com.nationsky.backstage.core.Factor;
 import com.nationsky.backstage.core.Factor.C;
@@ -187,6 +186,94 @@ public class UserAction extends BusinessBaseAction {
 	}
 	
 	/**
+	 * 28.	修改密码
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "updatePwd", method = RequestMethod.POST)
+	public void updatePwd(HttpServletRequest request,HttpServletResponse response) {
+		String code = "8", msg = "";//错误默认值
+		String userId = request.getParameter("userId");
+		String oldPassword = request.getParameter("oldPassword");
+		String newPassword = request.getParameter("newPassword");
+		try {
+			if(ValidateUtil.isNull(userId)||ValidateUtil.isNull(oldPassword)||ValidateUtil.isNull(newPassword)){
+				throw new Exception();
+			}
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
+			if(userInfo!=null){
+				if(userInfo.getPassword() != oldPassword){
+					throw new Exception();
+				}
+				userInfo.setPassword(newPassword);
+				commonService.update(userInfo);
+				code = "0";
+				msg = "";
+				responseWriter(response);
+			}else{
+				throw new Exception();
+			}
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
+		}
+		logger.info("userId:{}, oldPassword:{}, newPassword:{}, code:{}, msg:{}",userId, oldPassword, newPassword, code, msg);
+	}
+	
+	/**
+	 * 25.	获取设置信息
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "getSetInfo", method = RequestMethod.POST)
+	public void getSetInfo(HttpServletRequest request,HttpServletResponse response) {
+		String code = "8", msg = "提交失败";//错误默认值
+		String userId = request.getParameter("userId");
+		try {
+			if(ValidateUtil.isNull(userId)){
+				throw new Exception();
+			}
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
+			if(userInfo != null){
+				code = "0";
+				msg = "";
+				responseWriter(response,"privateSetting",userInfo.getPrivateType());
+			}else{
+				throw new Exception();
+			}
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
+		}
+		logger.info("code:{},msg:{}",code,msg);
+	}
+	
+	/**
+	 * 29.	获取用户信息
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "getUserInfo", method = RequestMethod.POST)
+	public void getUserInfo(HttpServletRequest request,HttpServletResponse response) {
+		String code = "8", msg = "提交失败";//错误默认值
+		String userId = request.getParameter("userId");
+		try {
+			if(ValidateUtil.isNull(userId)){
+				throw new Exception();
+			}
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
+			if(userInfo != null){
+				code = "0";
+				msg = "";
+				responseWriter(response,"userInfo",userInfo);
+			}else{
+				throw new Exception();
+			}
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
+		}
+		logger.info("code:{},msg:{}",code,msg);
+	}
+	
+	/**
 	 * 17获取好友列表
 	 * @param request
 	 * @param response
@@ -223,6 +310,39 @@ public class UserAction extends BusinessBaseAction {
 			responseWriter(code, msg, response);
 		}
 		logger.info("code:{},msg:{}",code,msg);
+	}
+	
+	/**
+	 * 26.	设置隐私设置 
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "setPrivate", method = RequestMethod.POST)
+	public void setPrivate(HttpServletRequest request,HttpServletResponse response) {
+		String code = "8", msg = "";//错误默认值
+		String userId = request.getParameter("userId");
+		String type = request.getParameter("type");
+		String members = request.getParameter("members");
+		try {
+			if(ValidateUtil.isNull(userId)||ValidateUtil.isNull(type)||ValidateUtil.isNull(members)){
+				throw new Exception();
+			}
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
+			if(userInfo!=null){
+				
+				userInfo.setPrivateType(Integer.parseInt(type));
+				userInfo.setPrivateUserIds(members);
+				commonService.update(userInfo);
+				code = "0";
+				msg = "";
+				responseWriter(response);
+			}else{
+				throw new Exception();
+			}
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
+		}
+		logger.info("userId:{}, privateType:{}, privateUserIds:{}, code:{}, msg:{}",userId, type, members, code, msg);
 	}
 	
 	/**
@@ -457,15 +577,19 @@ public class UserAction extends BusinessBaseAction {
 			if(userInfo != null && buddyuserInfo != null){
 				String hqlTmp = "select new list(t.id) from TaskInfo as t , TaskInfoAndUserInfo as tu where tu.taskId = t.id and tu.userId = %s and tu.isAgree = 1 and t.beginTime >= %s and t.endTime <= %s";//
 				String hql =String.format(hqlTmp, buddyUserId, date,  DateUtil.getDateAfter(DateUtil.getDate(new Date()), 1).getTime()/1000);
-				List<List<Integer>> taskInfoIdList = (List<List<Integer>>)commonService.findList(hql, 0, Integer.MAX_VALUE);
-				Integer[] beginTimeArray = new Integer[taskInfoIdList.size()];
+				List<List<Integer>> taskIdList = (List<List<Integer>>)commonService.findList(hql, 0, Integer.MAX_VALUE);
+				Integer[] beginTimeArray = new Integer[taskIdList.size()];
 				List<TaskInfo> taskInfoList = new ArrayList<TaskInfo>();
-				for (int i = 0; i < taskInfoIdList.size(); i++) {
-					int taskInfoId = taskInfoIdList.get(i).get(0);
+				for (int i = 0; i < taskIdList.size(); i++) {
+					int taskId = taskIdList.get(i).get(0);
+					TaskInfo taskInfo = TaskInfoHandler.getUserTaskInfo(Integer.parseInt(userId), taskId);
+					if(taskInfo != null){
+						taskInfoList.add(taskInfo);
+					}
 				}
 				code = "0";
 				msg = "";
-				responseWriter(response,"tasks",beginTimeArray);
+				responseWriter(response,"tasks",taskInfoList);
 			}else{
 				code = "8";
 				throw new Exception();
