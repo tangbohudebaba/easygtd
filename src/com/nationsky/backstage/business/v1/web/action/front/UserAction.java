@@ -2,7 +2,9 @@ package com.nationsky.backstage.business.v1.web.action.front;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,12 +19,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.nationsky.backstage.business.common.BusinessBaseAction;
 import com.nationsky.backstage.business.common.JavaSmsApi;
-import com.nationsky.backstage.business.common.NotifyTypeEnum;
 import com.nationsky.backstage.business.v1.bsc.dao.po.AuthCode;
 import com.nationsky.backstage.business.v1.bsc.dao.po.Notify;
+import com.nationsky.backstage.business.v1.bsc.dao.po.TaskInfo;
+import com.nationsky.backstage.business.v1.bsc.dao.po.TaskInfoAndUserInfo;
 import com.nationsky.backstage.business.v1.bsc.dao.po.UserInfo;
 import com.nationsky.backstage.core.Factor;
 import com.nationsky.backstage.core.Factor.C;
+import com.nationsky.backstage.util.DateUtil;
 import com.nationsky.backstage.util.ValidateUtil;
 
 @Controller
@@ -53,7 +57,7 @@ public class UserAction extends BusinessBaseAction {
 		} catch (Exception e) {
 			responseWriter(code, msg, response);
 		}
-		logger.info("phone:{},code:{},msg:{}",phone,code,msg);
+		logger.info("phone:{},password:{},code:{},msg:{}",phone,password,code,msg);
 	}
 	
 	
@@ -336,7 +340,14 @@ public class UserAction extends BusinessBaseAction {
 			}
 			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
 			UserInfo buddyuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(buddyUserId)));
+			
 			if(userInfo != null && buddyuserInfo != null){
+				if(ValidateUtil.isEquals("true", isAgree)){
+					userInfo.setBuddyUserIds((userInfo.getBuddyUserIds()+" "+buddyuserInfo.getId()).trim());
+					buddyuserInfo.setBuddyUserIds((buddyuserInfo.getBuddyUserIds()+" "+userInfo.getId()).trim());
+					commonService.update(userInfo);
+					commonService.update(buddyuserInfo);
+				}
 				//生成通知
 				Notify notify = new Notify();
 				notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
@@ -366,25 +377,25 @@ public class UserAction extends BusinessBaseAction {
 	 */
 	@RequestMapping(value = "getInviteList", method = RequestMethod.POST)
 	public void getInviteList(HttpServletRequest request,HttpServletResponse response) {
-		String code = "8", msg = "提交失败";//错误默认值
+		String code = "7", msg = "获取任务列表失败";//错误默认值
 		String userId = request.getParameter("userId");
 		try {
 			if(ValidateUtil.isNull(userId)){
 				throw new Exception();
 			}
-			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
-			if(userInfo != null){
-				List<Notify> notifyList = commonService.findList(Notify.class, 0, Integer.MAX_VALUE, "updatedAt:desc", Factor.create("userId", C.Eq, Integer.parseInt(userId)), Factor.create("type", C.Eq, NotifyTypeEnum.getIndex(7)));
-				code = "0";
-				msg = "";
-				responseWriter(response,"notifications",notifyList);
-			}else{
-				throw new Exception();
+			DateUtil.getDate(new Date());
+			List<Notify> notifyList = commonService.findList(Notify.class, 0, Integer.MAX_VALUE, "updatedAt:desc", Factor.create("userId", C.Eq, Integer.parseInt(userId)), Factor.create("type", C.In, new Integer[]{7,10,11}));
+			for (int i = 0; i < notifyList.size(); i++) {
+					UserInfo fromuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, notifyList.get(i).getFromUserId()));
+					notifyList.get(i).setFromUserName(fromuserInfo.getName());
 			}
+			code = "0";
+			msg = "";
+			responseWriter(response, "notifications", notifyList);
 		} catch (Exception e) {
 			responseWriter(code, msg, response);
 		}
-		logger.info("code:{},msg:{}, userId:{}", code, msg, userId);
+		logger.info("userId:{},code:{},msg:{}",userId,code,msg);
 	}
 	
 	/**
@@ -397,7 +408,8 @@ public class UserAction extends BusinessBaseAction {
 		String code = "8", msg = "提交失败";//错误默认值
 		String userId = request.getParameter("userId");
 		String buddyUserId = request.getParameter("buddyUserId");
-		String isAgree = request.getParameter("isAgree");//是否同意，ture为同意
+		String beginTime = request.getParameter("beginTime");
+		String endTime = request.getParameter("endTime");
 		try {
 			if(ValidateUtil.isNull(userId) && ValidateUtil.isNull(buddyUserId)){
 				throw new Exception();
@@ -405,10 +417,57 @@ public class UserAction extends BusinessBaseAction {
 			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
 			UserInfo buddyuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(buddyUserId)));
 			if(userInfo != null && buddyuserInfo != null){
+				String hqlTmp = "select new list(t.beginTime) from TaskInfo as t , TaskInfoAndUserInfo as tu where tu.taskId = t.id and tu.userId = %s and tu.isDone = 0 and tu.isAgree = 1 and t.beginTime >= %s and t.endTime <= %s";//
+				String hql =String.format(hqlTmp, buddyUserId, beginTime,  endTime);
+				List<List<Long>> taskInfoList = (List<List<Long>>)commonService.findList(hql, 0, Integer.MAX_VALUE);
+				Long[] beginTimeArray = new Long[taskInfoList.size()];
+				for (int i = 0; i < taskInfoList.size(); i++) {
+					beginTimeArray[i] = taskInfoList.get(i).get(0);
+				}
 				code = "0";
 				msg = "";
-				responseWriter(response);
+				responseWriter(response,"times",beginTimeArray);
 			}else{
+				code = "8";
+				throw new Exception();
+			}
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
+		}
+		logger.info("code:{},msg:{}, userId:{},msg:{}",userId,buddyUserId);
+	}
+	
+	/**
+	 *24.	获取人员某天任务
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "getDayTasks", method = RequestMethod.POST)
+	public void getDayTasks(HttpServletRequest request,HttpServletResponse response) {
+		String code = "8", msg = "提交失败";//错误默认值
+		String userId = request.getParameter("userId");
+		String buddyUserId = request.getParameter("buddyUserId");
+		String date = request.getParameter("date");//当天0点时间戳GTM(秒数)
+		try {
+			if(ValidateUtil.isNull(userId) && ValidateUtil.isNull(buddyUserId)){
+				throw new Exception();
+			}
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
+			UserInfo buddyuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(buddyUserId)));
+			if(userInfo != null && buddyuserInfo != null){
+				String hqlTmp = "select new list(t.id) from TaskInfo as t , TaskInfoAndUserInfo as tu where tu.taskId = t.id and tu.userId = %s and tu.isAgree = 1 and t.beginTime >= %s and t.endTime <= %s";//
+				String hql =String.format(hqlTmp, buddyUserId, date,  DateUtil.getDateAfter(DateUtil.getDate(new Date()), 1).getTime()/1000);
+				List<List<Integer>> taskInfoIdList = (List<List<Integer>>)commonService.findList(hql, 0, Integer.MAX_VALUE);
+				Integer[] beginTimeArray = new Integer[taskInfoIdList.size()];
+				List<TaskInfo> taskInfoList = new ArrayList<TaskInfo>();
+				for (int i = 0; i < taskInfoIdList.size(); i++) {
+					int taskInfoId = taskInfoIdList.get(i).get(0);
+				}
+				code = "0";
+				msg = "";
+				responseWriter(response,"tasks",beginTimeArray);
+			}else{
+				code = "8";
 				throw new Exception();
 			}
 		} catch (Exception e) {

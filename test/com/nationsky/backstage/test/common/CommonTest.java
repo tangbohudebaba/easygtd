@@ -12,12 +12,13 @@ public class CommonTest {
 	public static String urlStr = "http://127.0.0.1:8080/easygtd/v1/";//127.0.0.1:8080
 	public static void main(String[] args) {
 		//FileUtil.readFile(file, encoding).readFile(file, encoding)
-		login();
+//		login();
 //		getAuthCode();
 //		submitAuthCode();
 //		setPwd();
+//		findTimeBucketTasks();
 //		getInfo();
-//		create();
+		create();
 //		update();
 //		new Date(System.currentTimeMillis());
 //		System.out.println(System.currentTimeMillis());
@@ -73,6 +74,14 @@ public class CommonTest {
 		System.out.println(result);
 	}
 	
+	//23.	查询人员某个时间段内是否有任务
+	public static void findTimeBucketTasks(){
+		String childUrl = "user/findTimeBucketTasks.ac"; 
+		String queryString = "userId=2&buddyUserId=2&beginTime=1317515847&endTime=1377610201";
+		String result = HttpUtil.getResult(urlStr+childUrl, queryString);
+		System.out.println(result);
+	}
+	
 	//5.	获取任务列表
 	public static void getList(){
 		String childUrl = "task/getList.ac"; 
@@ -106,5 +115,7 @@ public class CommonTest {
 		String result = HttpUtil.getResult(urlStr+childUrl, queryString);
 		System.out.println(result);
 	}
+	
+	
 	
 }

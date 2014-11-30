@@ -69,7 +69,7 @@ public class DateJsonValueProcessorUtil implements JsonValueProcessor {
 		config.registerJsonValueProcessor(Timestamp.class, new DateJsonValueProcessorUtil(DateJsonValueProcessorUtil.Default_DATE_PATTERN));
 		JSONObject ResponseMessageJsonObject = JSONObject.fromObject(parent,config);
 		if(ValidateUtil.isNotNull(accumulateKey)&&child!=null){
-			if(child instanceof Collection){
+			if(child instanceof Collection || child instanceof Object[]){
 				ResponseMessageJsonObject.accumulate(accumulateKey, JSONArray.fromObject(child,config));
 			}else{
 					if(ValidateUtil.isPrimitive(child)){

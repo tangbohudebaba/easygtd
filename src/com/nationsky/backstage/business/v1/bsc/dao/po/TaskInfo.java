@@ -39,6 +39,7 @@ public class TaskInfo extends PO {
 	private Integer isHasMembers = 0;//是否有成员 0无成员 1有成员
 	private Integer isDone = 0;//是否已完成 0未完成 1已经完成
 	private Integer isFlag = 0;//是否已星标 0不是星标任务 1是星标任务
+	private Integer isDelete = 0;//是否已经被删除  0没删除 1已经删除
 	private Integer userId;//当前用户ID
 	private String memberUserIds;//成员用户IDs,英文半角逗号分割
 	private String remark;//备注
@@ -162,5 +163,14 @@ public class TaskInfo extends PO {
 	public void setCreaterUserId(Integer createrUserId) {
 		this.createrUserId = createrUserId;
 	}
+
+	public Integer getIsDelete() {
+		return isDelete;
+	}
+
+	public void setIsDelete(Integer isDelete) {
+		this.isDelete = isDelete;
+	}
+	
 	
 }

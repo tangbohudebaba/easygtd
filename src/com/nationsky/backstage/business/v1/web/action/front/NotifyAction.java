@@ -55,19 +55,18 @@ public class NotifyAction extends BusinessBaseAction {
 				throw new Exception();
 			}
 			DateUtil.getDate(new Date());
-			List<Notify> notifyList = commonService.findList(Notify.class, 0, Integer.MAX_VALUE, "updatedAt:desc", Factor.create("userId", C.Eq, Integer.parseInt(userId)));
+			List<Notify> notifyList = commonService.findList(Notify.class, 0, Integer.MAX_VALUE, "updatedAt:desc", Factor.create("userId", C.Eq, Integer.parseInt(userId)), Factor.create("type", C.In, new Integer[]{1,2,3,4,5,6,8,9}));
 			for (int i = 0; i < notifyList.size(); i++) {
-				if(tastNotifyTypeList.contains(notifyList.get(i))){
 					TaskInfo taskInfo = commonService.getUnique(TaskInfo.class, Factor.create("id", C.Eq, notifyList.get(i).getTaskId()));
 					UserInfo fromuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, notifyList.get(i).getFromUserId()));
-					notifyList.get(i).setFromUserName(fromuserInfo.getName());
-					notifyList.get(i).setBeginTime(taskInfo.getBeginTime());
-					notifyList.get(i).setEndTime(taskInfo.getEndTime());
-					notifyList.get(i).setTitle(taskInfo.getTitle());
-				}else if(userNotifyTypeList.contains(notifyList.get(i))){
-					UserInfo fromuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, notifyList.get(i).getFromUserId()));
-					notifyList.get(i).setFromUserName(fromuserInfo.getName());
-				}
+					if(taskInfo != null){
+						notifyList.get(i).setBeginTime(taskInfo.getBeginTime());
+						notifyList.get(i).setEndTime(taskInfo.getEndTime());
+						notifyList.get(i).setTitle(taskInfo.getTitle());
+					}
+					if(fromuserInfo != null){
+						notifyList.get(i).setFromUserName(fromuserInfo.getName());
+					}
 			}
 			code = "0";
 			msg = "";

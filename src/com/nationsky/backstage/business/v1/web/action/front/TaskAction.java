@@ -43,12 +43,16 @@ public class TaskAction extends BusinessBaseAction {
 				throw new Exception();
 			}
 			DateUtil.getDate(new Date());
-//			Factor[] factorOrs = new Factor[]{Factor.create("endTime", C.Lt, System.currentTimeMillis()),Factor.create("beginTime", C.Ge, DateUtil.getDate(new Date()).getTime())};
+//			Factor[] factorOrs = new Factor[]{Factor.create("endTime", C.Lt, System.currentTimeMillis()/1000),Factor.create("beginTime", C.Ge, DateUtil.getDate(new Date()).getTime()/1000)};
 //			List<TaskInfo> taskInfoList = commonService.findList(TaskInfo.class, 0, Integer.MAX_VALUE, "beginTime:desc", Factor.create("userId", C.Eq, Integer.parseInt(userId)),Factor.create(null, C.Or, factorOrs),Factor.create("isDone", C.Ne, 0));
 			List<TaskInfo> taskInfoList = new ArrayList<TaskInfo>();
 			List<TaskInfoAndUserInfo> taskInfoAndUserInfoList = commonService.findList(TaskInfoAndUserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("userId", C.Eq, Integer.parseInt(userId)), Factor.create("isAgree", C.Eq, 1));
 			for (TaskInfoAndUserInfo taskInfoAndUserInfo : taskInfoAndUserInfoList) {
-				TaskInfo taskInfo = commonService.getUnique(TaskInfo.class, Factor.create("id", C.Eq, taskInfoAndUserInfo.getTaskId()));
+				Factor[] factorOrs = new Factor[]{Factor.create("endTime", C.Lt, System.currentTimeMillis()/1000),Factor.create("beginTime", C.Ge, DateUtil.getDate(new Date()).getTime()/1000),Factor.create("id", C.Eq, taskInfoAndUserInfo.getTaskId())};
+				TaskInfo taskInfo = commonService.getUnique(TaskInfo.class,factorOrs);
+				if(taskInfo == null){
+					continue;
+				}
 				taskInfo.setIsDone(taskInfoAndUserInfo.getIsDone());
 				taskInfo.setIsFlag(taskInfoAndUserInfo.getIsFlag());
 				if(taskInfo.getIsHasMembers()==1){
@@ -152,7 +156,8 @@ public class TaskAction extends BusinessBaseAction {
 			if(taskInfoAndUserInfoList == null || taskInfo == null){
 				throw new Exception();
 			}
-			commonService.remove(taskInfo);
+			taskInfo.setIsDelete(1);
+			commonService.update(taskInfo);
 			for (TaskInfoAndUserInfo taskInfoAndUserInfo : taskInfoAndUserInfoList) {
 				commonService.remove(taskInfoAndUserInfo);
 				//生成通知
