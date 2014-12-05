@@ -1,6 +1,7 @@
 ﻿package com.nationsky.backstage.util;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,11 +11,20 @@ import java.io.UnsupportedEncodingException;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.zip.GZIPInputStream;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
+
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.URIException;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.util.URIUtil;
+import org.apache.commons.lang.StringUtils;
 
 import com.nationsky.backstage.Configuration;
 
@@ -158,6 +168,113 @@ public class HttpUtil {
 		}
 		return null;
 	}
+	
+	/**
+	 * 通过GET方法获得
+	 * @param urlStr
+	 * @param charsetName 编码
+	 * @return
+	 */
+	public static String get(String urlStr){
+		return get(urlStr, null, null);
+	}
+	
+	/**
+	 * 通过GET方法获得
+	 * @param urlStr
+	 * @param charsetName 编码
+	 * @return
+	 */
+	public static String get(String urlStr, String charsetName){
+		return get(urlStr, charsetName, null);
+	}
+	
+	/**
+	 * 通过GET方法获得
+	 * @param urlStr
+	 * @param charsetName 编码
+	 * @param cookieStr cookie字符串
+	 * @return
+	 */
+	public static String get(String urlStr, String charsetName, String cookieStr){
+		URL url = null;
+		HttpURLConnection connection = null;
+		try {
+			url = new URL(urlStr);
+			connection = (HttpURLConnection) url.openConnection();
+			connection.setDoOutput(true);
+			connection.setDoInput(true);
+			connection.setRequestMethod("GET");
+			connection.setUseCaches(false);
+			connection.setConnectTimeout(60000);
+			connection.setReadTimeout(60000);
+			if(cookieStr != null && cookieStr.length() > 0){
+				connection.setRequestProperty("Cookie", cookieStr);
+			}
+			connection.connect();
+			BufferedReader reader = null;
+			if(charsetName != null){
+				reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), charsetName));
+			}else{
+				reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+			}
+			StringBuffer buffer = new StringBuffer();
+			String line = "";
+			while ((line = reader.readLine()) != null) {
+				buffer.append(line);
+			}
+			reader.close();
+			return buffer.toString();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (connection != null) {
+				connection.disconnect();
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * 通过GET方法获得Zip流
+	 * @param url
+	 * @param queryString
+	 * @param encode
+	 * @return
+	 */
+	public static String getZip(String url,String queryString,String encode) {
+		String response = null;
+		HttpClient client = new HttpClient();
+		HttpMethod method = new GetMethod(url);
+		try {
+			if (StringUtils.isNotBlank(queryString)) {
+				method.setQueryString(URIUtil.encodeQuery(queryString));
+			}
+		    client.executeMethod(method);
+			if (method.getStatusCode() == HttpStatus.SC_OK) {
+				InputStream in = method.getResponseBodyAsStream();     
+			    GZIPInputStream gzip = new GZIPInputStream(in);
+			    ByteArrayOutputStream baos = new ByteArrayOutputStream();			    
+			    byte[] buf = new byte[1024];
+			    int n;
+			    while ((n = gzip.read(buf)) != -1) {
+			        baos.write(buf, 0, n);
+			    }	
+			    gzip.close();
+			    in.close();
+			    response = new String(baos.toByteArray(),encode);			
+			}
+		} catch (URIException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			method.releaseConnection();
+		}
+		return response;
+	}
+	
+	
 	/**
 	 * 地址转码
 	 * @param str

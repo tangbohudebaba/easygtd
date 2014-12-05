@@ -11,7 +11,10 @@ import info.monitorenter.cpdetector.io.UnicodeDetector;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
 
@@ -137,4 +140,46 @@ public class CharsetUtil {
 		}
 	}
 	
+	public static void main(String[] args) {
+		//String url = "http://newcar.xcar.com.cn/pub_js/car_arr_newcar_2009_ps.js";
+//		String a = HttpUtil.get(url,"gb2312");
+//		System.out.println(a);
+//		String b = getEncode(a.getBytes());
+//		System.out.println(b);
+//		try {
+//			String aa=new String(a.getBytes("gbk"),"iso-8859-1");
+//			FileUtil.writeFile("d:/a/a.txt", a, "utf-8");
+//			System.out.println(aa);
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}  
+		try {
+
+			String strUrl = "http://newcar.xcar.com.cn/pub_js/car_arr_newcar_2009_ps.js";
+			URL url = new URL(strUrl);
+			HttpURLConnection urlCon = (HttpURLConnection) url.openConnection();
+			urlCon.setConnectTimeout(5000);
+			urlCon.setReadTimeout(5000);
+			InputStream in = urlCon.getInputStream();
+
+			OutputStream out = new FileOutputStream("D:\\out.txt");
+			int current=in.read();
+			while(current!=-1){
+				out.write(current);
+				current=in.read();
+			}
+
+			in.close();
+			out.close();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+
+
+
+		
+		
+	}
 }
