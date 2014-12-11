@@ -34,7 +34,7 @@ public class DelayTaskNotifyJob implements Job {
 			throws JobExecutionException {
 		logger.info("--send delay task notify start--");
 		//发送延期任务通知
-		String hqltmp = "select new list(t.id, tu.userId) from TaskInfo as t, TaskInfoAndUserInfo tu where t.id = tu.taskId and tu.isAgree = 1 and tu.isDone = 0 and tu.delayNotify = 0 and t.isDelete = 0 and t.endTime != 0 and t.beginTime != 0 and t.endTime < %s";
+		String hqltmp = "select new list(t.id, tu.userId) from TaskInfo as t, TaskInfoAndUserInfo tu where t.id = tu.taskId and tu.isAgree = 1 and tu.isDone = 0 and tu.delayNotify = 0 and t.isDelete = 0 and t.endTime < %s";
 		String hql = String.format(hqltmp, System.currentTimeMillis()/1000);
 		List<List<Integer>> taskIdAnduserIdList = (List<List<Integer>>)BusinessCommonService.commonService.findList(hql, 0, Integer.MAX_VALUE);
 		for (List<Integer> taskIdAnduserId : taskIdAnduserIdList) {

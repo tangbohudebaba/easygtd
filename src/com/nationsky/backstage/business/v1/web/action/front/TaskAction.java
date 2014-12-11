@@ -44,7 +44,7 @@ public class TaskAction extends BusinessBaseAction {
 				throw new Exception();
 			}
 			List<TaskInfo> taskInfoList1 = new ArrayList<TaskInfo>();
-			String hqltmp = "select distinct t from TaskInfo as t, TaskInfoAndUserInfo tu where ((t.id = tu.taskId and tu.isAgree = 1 and tu.isDone = 0 and t.isDelete = 0 and t.endTime != 0 and t.beginTime != 0 and t.endTime < %s ) or (t.id = tu.taskId and tu.isAgree = 1 and t.isDelete = 0  and t.beginTime > %s ) or (t.id = tu.taskId and tu.isAgree = 1 and t.isDelete = 0  and t.endTime = 0 and t.beginTime = 0 )) and tu.userId = %s";
+			String hqltmp = "select distinct t from TaskInfo as t, TaskInfoAndUserInfo tu where ((t.id = tu.taskId and tu.isAgree = 1 and tu.isDone = 0 and t.isDelete = 0 and t.endTime < %s ) or (t.id = tu.taskId and tu.isAgree = 1 and t.isDelete = 0  and t.beginTime > %s ) or (t.id = tu.taskId and tu.isAgree = 1 and t.isDelete = 0  and t.endTime is null and t.beginTime is null )) and tu.userId = %s";
 			String hql = String.format(hqltmp, System.currentTimeMillis()/1000, DateUtil.getDate(new Date()).getTime()/1000, userId);
 			List<TaskInfo> taskInfoList = (List<TaskInfo>)commonService.findList(hql, 0, Integer.MAX_VALUE);
 			for (TaskInfo taskInfo : taskInfoList) {
@@ -188,7 +188,7 @@ public class TaskAction extends BusinessBaseAction {
 			if(taskInfo == null){
 				throw new Exception();
 			}
-			TaskInfoAndUserInfo taskInfoAndUserInfo = commonService.getUnique(TaskInfoAndUserInfo.class, Factor.create("userId", C.Eq, Integer.parseInt(userId)),  Factor.create("taskId", C.Eq, Integer.parseInt(taskId)), Factor.create("isAgree", C.Eq, 1));
+			TaskInfoAndUserInfo taskInfoAndUserInfo = commonService.getUnique(TaskInfoAndUserInfo.class, Factor.create("userId", C.Eq, Integer.parseInt(userId)),  Factor.create("taskId", C.Eq, Integer.parseInt(taskId)));
 			taskInfo.setIsDone(taskInfoAndUserInfo.getIsDone());
 			taskInfo.setIsFlag(taskInfoAndUserInfo.getIsFlag());
 			List<UserInfo> userInfoList = null;

@@ -21,11 +21,12 @@ public class CommonTest {
 //		getSetInfo();
 //		getUserInfo();
 //		getInfo();
+		inviteBuddy();
 //		create();
 //		update();
 //		new Date(System.currentTimeMillis());
 //		System.out.println(System.currentTimeMillis());
-		getList();
+//		getList();
 //		String userId = "1";
 //		String memberUserIds = "22,1,ss,1";
 //		memberUserIds = memberUserIds.replace(userId, "").replace(",,", ",");
@@ -88,6 +89,14 @@ public class CommonTest {
 	public static void setPwd(){
 		String childUrl = "user/setPwd.ac"; 
 		String queryString = "phone=18611866641&password=1111";
+		String result = HttpUtil.getResult(urlStr+childUrl, queryString);
+		System.out.println(result);
+	}
+	
+	//20,邀请好友
+	public static void inviteBuddy(){
+		String childUrl = "user/inviteBuddy.ac"; 
+		String queryString = "userId=2&phone=18610032225";
 		String result = HttpUtil.getResult(urlStr+childUrl, queryString);
 		System.out.println(result);
 	}

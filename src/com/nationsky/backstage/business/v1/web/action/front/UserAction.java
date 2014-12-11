@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -12,6 +14,7 @@ import net.sf.json.JSONObject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -298,7 +301,7 @@ public class UserAction extends BusinessBaseAction {
 					for (int i = 0; i < buddyUserIdStrArray.length; i++) {
 						buddyUserIdArray[i] =Integer.parseInt(buddyUserIdStrArray[i]);
 					}
-					userInfoList = commonService.findList(UserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("id", C.In, buddyUserIdArray));
+					userInfoList = commonService.findList(UserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("id", C.Ne, userInfo.getId()), Factor.create("id", C.In, buddyUserIdArray));
 				}
 				code = "0";
 				msg = "";
@@ -324,7 +327,10 @@ public class UserAction extends BusinessBaseAction {
 		String type = request.getParameter("type");
 		String members = request.getParameter("members");
 		try {
-			if(ValidateUtil.isNull(userId)||ValidateUtil.isNull(type)||ValidateUtil.isNull(members)){
+			if(ValidateUtil.isNull(userId)||ValidateUtil.isNull(type)){
+				throw new Exception();
+			}
+			if(ValidateUtil.isEquals("1", type) && ValidateUtil.isNull(members)){
 				throw new Exception();
 			}
 			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
@@ -363,9 +369,9 @@ public class UserAction extends BusinessBaseAction {
 			List<UserInfo> userInfoList = null;
 			if(userInfo != null){
 				if(keyword.matches("((\\d{11})|^((\\d{7,8})|(\\d{4}|\\d{3})-(\\d{7,8})|(\\d{4}|\\d{3})-(\\d{7,8})-(\\d{4}|\\d{3}|\\d{2}|\\d{1})|(\\d{7,8})-(\\d{4}|\\d{3}|\\d{2}|\\d{1}))$)")){
-					userInfoList = commonService.findList(UserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("phone", C.Eq, keyword));
+					userInfoList = commonService.findList(UserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("phone", C.Eq, keyword), Factor.create("phone", C.Ne, userInfo.getPhone()));
 				}else{
-					userInfoList = commonService.findList(UserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("name", C.Like, "%"+keyword+"%"));
+					userInfoList = commonService.findList(UserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("name", C.Like, "%"+keyword+"%"), Factor.create("name", C.Ne, userInfo.getName()));
 				}
 				code = "0";
 				msg = "";
@@ -380,7 +386,7 @@ public class UserAction extends BusinessBaseAction {
 	}
 	
 	/**
-	 * 19.	添加好友(待完善)
+	 * 19.	添加好友
 	 * @param request
 	 * @param response
 	 */
@@ -393,15 +399,28 @@ public class UserAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(userId) && ValidateUtil.isNull(buddyUserId)){
 				throw new Exception();
 			}
+			if(ValidateUtil.isEquals(userId, buddyUserId)){
+				throw new Exception();
+			}
 			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
 			UserInfo buddyuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(buddyUserId)));
 			if(userInfo != null && buddyuserInfo != null){
-				//生成通知
-				Notify notify = new Notify();
-				notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
-				notify.setType(7);
-				notify.setUserId(Integer.parseInt(buddyUserId));//被通知用户ID
-				commonService.create(notify);
+				if(ValidateUtil.isNotNull(userInfo.getBuddyUserIds()) && userInfo.getBuddyUserIds().contains(buddyuserInfo.getId().toString())){
+					code = "0";
+					msg = "";
+					responseWriter(response);
+					return;
+				}
+			List<Notify> notifyList = commonService.findList(Notify.class, 0, Integer.MAX_VALUE, null, Factor.create("userId", C.Eq, Integer.parseInt(buddyUserId)), Factor.create("fromUserId", C.Eq, Integer.parseInt(userId)), Factor.create("type", C.Eq, 7));
+			if(!ValidateUtil.isNullCollection(notifyList) || notifyList.size() == 0){
+					//生成通知
+					Notify notify = new Notify();
+					notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
+					notify.setType(7);
+					notify.setUserId(Integer.parseInt(buddyUserId));//被通知用户ID
+					commonService.create(notify);
+				}
+				
 				code = "0";
 				msg = "";
 				responseWriter(response);
@@ -415,7 +434,7 @@ public class UserAction extends BusinessBaseAction {
 	}
 	
 	/**
-	 *20.	邀请好友
+	 *20.	邀请好友(未完成)
 	 * @param request
 	 * @param response
 	 */
@@ -423,24 +442,37 @@ public class UserAction extends BusinessBaseAction {
 	public void inviteBuddy(HttpServletRequest request,HttpServletResponse response) {
 		String code = "8", msg = "提交失败";//错误默认值
 		String userId = request.getParameter("userId");
-		String buddyUserId = request.getParameter("buddyUserId");
+		String phone = request.getParameter("phone");
 		try {
-			if(ValidateUtil.isNull(userId) && ValidateUtil.isNull(buddyUserId)){
+			if(ValidateUtil.isNull(userId) && ValidateUtil.isNull(phone)){
 				throw new Exception();
 			}
 			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
-			UserInfo buddyuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(buddyUserId)));
-			if(userInfo != null && buddyuserInfo == null){
+			UserInfo buddyuserInfo = commonService.getUnique(UserInfo.class,Factor.create("phone", C.Eq, phone));
+			
+			if(userInfo != null && buddyuserInfo == null){//如果好友没注册过,发短信
+				if(ValidateUtil.isEquals(userInfo.getPhone(), phone)){
+					throw new Exception();
+				}
+				//走短信..(待开发)
 				code = "0";
 				msg = "";
 				responseWriter(response);
+			}else if (userInfo != null && buddyuserInfo != null){//如果好友已经注册过,走添加好友流程
+				if(ValidateUtil.isEquals(userInfo.getPhone(), phone)){
+					throw new Exception();
+				}
+				request.getRequestDispatcher("addBuddy.ac?buddyUserId="+buddyuserInfo.getId()).forward((ServletRequest)request,(ServletResponse)response);
+				return;
+				//request.setAttribute("buddyUserId", buddyuserInfo.getId());
+				//addBuddy(request, response);
 			}else{
 				throw new Exception();
 			}
 		} catch (Exception e) {
 			responseWriter(code, msg, response);
 		}
-		logger.info("code:{},msg:{}, userId:{},buddyUserId:{}", code, msg, userId, buddyUserId);
+		logger.info("code:{},msg:{}, userId:{},phone:{}", code, msg, userId, phone);
 	}
 	
 	/**
@@ -453,16 +485,26 @@ public class UserAction extends BusinessBaseAction {
 		String code = "8", msg = "提交失败";//错误默认值
 		String userId = request.getParameter("userId");
 		String buddyUserId = request.getParameter("buddyUserId");
-		String isAgree = request.getParameter("isAgree");//是否同意，ture为同意
+		String isAgree = request.getParameter("isAgree");//是否同意，1为同意
 		try {
 			if(ValidateUtil.isNull(userId) && ValidateUtil.isNull(buddyUserId)){
+				throw new Exception();
+			}
+			if(ValidateUtil.isEquals(userId, buddyUserId)){
 				throw new Exception();
 			}
 			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
 			UserInfo buddyuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(buddyUserId)));
 			
 			if(userInfo != null && buddyuserInfo != null){
-				if(ValidateUtil.isEquals("true", isAgree)){
+				if(ValidateUtil.isNotNull(userInfo.getBuddyUserIds()) && userInfo.getBuddyUserIds().contains(buddyuserInfo.getId().toString())){
+					msg = "已经是好友";
+					code = "0";
+					msg = "";
+					responseWriter(response);
+					return;
+				}
+				if(ValidateUtil.isEquals("1", isAgree)){
 					userInfo.setBuddyUserIds((userInfo.getBuddyUserIds()+" "+buddyuserInfo.getId()).trim());
 					buddyuserInfo.setBuddyUserIds((buddyuserInfo.getBuddyUserIds()+" "+userInfo.getId()).trim());
 					commonService.update(userInfo);
@@ -471,7 +513,7 @@ public class UserAction extends BusinessBaseAction {
 				//生成通知
 				Notify notify = new Notify();
 				notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
-				if(ValidateUtil.isEquals("true", isAgree)){
+				if(ValidateUtil.isEquals("1", isAgree)){
 					notify.setType(10);
 				}else{
 					notify.setType(11);
@@ -568,6 +610,7 @@ public class UserAction extends BusinessBaseAction {
 		String userId = request.getParameter("userId");
 		String buddyUserId = request.getParameter("buddyUserId");
 		String date = request.getParameter("date");//当天0点时间戳GTM(秒数)
+		boolean isLook = true;//是否可以看这个人的任务详情
 		try {
 			if(ValidateUtil.isNull(userId) && ValidateUtil.isNull(buddyUserId)){
 				throw new Exception();
@@ -575,15 +618,32 @@ public class UserAction extends BusinessBaseAction {
 			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
 			UserInfo buddyuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(buddyUserId)));
 			if(userInfo != null && buddyuserInfo != null){
-				String hqlTmp = "select new list(t.id) from TaskInfo as t , TaskInfoAndUserInfo as tu where tu.taskId = t.id and tu.userId = %s and tu.isAgree = 1 and t.beginTime >= %s and t.endTime <= %s";//
-				String hql =String.format(hqlTmp, buddyUserId, date,  DateUtil.getDateAfter(DateUtil.getDate(new Date()), 1).getTime()/1000);
+				//1：指定人可见、2：只有任务相关人员可见[默认]、3：所有人可见；4：所有人不可见
+				if(buddyuserInfo.getPrivateType() == 1){
+					if(ValidateUtil.isNull(buddyuserInfo.getPrivateUserIds()) || !buddyuserInfo.getPrivateUserIds().contains(userId)){
+						isLook = false;
+					}
+				}else if(buddyuserInfo.getPrivateType() == 2){
+					//在下面的for循环里面判断
+				}else if(buddyuserInfo.getPrivateType() == 4){
+					isLook = false;
+				}
+				
+				
+				String hqlTmp = "select new list(t.id) from TaskInfo as t , TaskInfoAndUserInfo as tu where tu.taskId = t.id and tu.userId = %s and tu.isAgree = 1 and t.beginTime >= %s and t.beginTime <= %s";
+				String hql =String.format(hqlTmp, buddyUserId, date,  Integer.parseInt(date)+24*3600);
 				List<List<Integer>> taskIdList = (List<List<Integer>>)commonService.findList(hql, 0, Integer.MAX_VALUE);
-				Integer[] beginTimeArray = new Integer[taskIdList.size()];
 				List<TaskInfo> taskInfoList = new ArrayList<TaskInfo>();
 				for (int i = 0; i < taskIdList.size(); i++) {
 					int taskId = taskIdList.get(i).get(0);
-					TaskInfo taskInfo = TaskInfoHandler.getUserTaskInfo(Integer.parseInt(userId), taskId);
+					TaskInfo taskInfo = TaskInfoHandler.getUserTaskInfo(Integer.parseInt(buddyUserId), taskId);
 					if(taskInfo != null){
+						if(!taskInfo.getMemberUserIds().contains("\"id\":"+userId)){//如果这个人不在此任务的成员里
+							isLook = false;
+						}
+						if(!isLook){
+							taskInfo.setTitle("已有安排");
+						}
 						taskInfoList.add(taskInfo);
 					}
 				}
