@@ -49,6 +49,7 @@ public class UserInfo extends PO {
 	private String buddyUserIds;//好友userID,空格分开
 	private Integer privateType = 2;//1：指定人可见、2：只有任务相关人员可见[默认]、3：所有人可见；4：所有人不可见
 	private String privateUserIds;//指定任务可见人员userID,空格分开
+	private String pushToken;
 	private Timestamp createdAt = new Timestamp(System.currentTimeMillis());//用户创建时间
 	private Timestamp updatedAt = new Timestamp(System.currentTimeMillis());//用户信息更新时间
 	
@@ -130,6 +131,14 @@ public class UserInfo extends PO {
 
 	public void setPrivateUserIds(String privateUserIds) {
 		this.privateUserIds = privateUserIds;
+	}
+
+	public String getPushToken() {
+		return pushToken;
+	}
+
+	public void setPushToken(String pushToken) {
+		this.pushToken = pushToken;
 	}
 	
 }

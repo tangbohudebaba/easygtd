@@ -47,6 +47,33 @@ public class UserAction extends BusinessBaseAction {
 		String code = "1", msg = "login fail";//错误默认值
 		String phone = request.getParameter("phone");
 		String password = request.getParameter("password");
+		String pushToken = request.getParameter("pushToken");
+		try {
+			UserInfo userInfo = commonService.getUnique(UserInfo.class, Factor.create("phone", C.Eq, phone));
+			if(userInfo!=null&&ValidateUtil.isEquals(userInfo.getPassword(), password)){
+				userInfo.setPushToken(pushToken);
+				code = "0";
+				msg = "login success";
+				responseWriter(msg, response, "userInfo", userInfo);
+			}else {
+				throw new IOException();
+			}
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
+		}
+		logger.info("phone:{},password:{},code:{},msg:{}",phone,password,code,msg);
+	}
+	
+	/**
+	 * 用户登出
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "/logout", method = RequestMethod.POST)
+	public void logout(HttpServletRequest request,HttpServletResponse response) { 
+		String code = "1", msg = "login fail";//错误默认值
+		String phone = request.getParameter("phone");
+		String password = request.getParameter("password");
 		try {
 			UserInfo userInfo = commonService.getUnique(UserInfo.class, Factor.create("phone", C.Eq, phone));
 			if(userInfo!=null&&ValidateUtil.isEquals(userInfo.getPassword(), password)){
@@ -61,6 +88,7 @@ public class UserAction extends BusinessBaseAction {
 		}
 		logger.info("phone:{},password:{},code:{},msg:{}",phone,password,code,msg);
 	}
+	
 	
 	
 	/**
@@ -163,25 +191,42 @@ public class UserAction extends BusinessBaseAction {
 		String phone = request.getParameter("phone");
 		String password = request.getParameter("password");
 		String name = request.getParameter("name");
+		String type = request.getParameter("type");
+		
 		try {
 			if(ValidateUtil.isNull(phone)||ValidateUtil.isNull(password)){
 				throw new Exception();
 			}
 			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("phone", C.Eq, phone));
-			if(userInfo==null){
-				userInfo = new UserInfo();
-				userInfo.setPhone(phone);
-				userInfo.setName(name);
-				userInfo.setPassword(password);
-				commonService.create(userInfo);
-				code = "0";
-				msg = "";
-				responseWriter(response);
-			}else{
-				 code = "6";
-				 msg = "此手机号已经存在";
-				throw new Exception();
+			if(ValidateUtil.isEquals("1", type)){//注册
+				if(userInfo==null){
+					userInfo = new UserInfo();
+					userInfo.setPhone(phone);
+					userInfo.setName(name);
+					userInfo.setPassword(password);
+					commonService.create(userInfo);
+					code = "0";
+					msg = "";
+					responseWriter(response);
+				}else{
+					 code = "6";
+					 msg = "此手机号已经存在";
+					throw new Exception();
+				}
+			}else if(ValidateUtil.isEquals("3", type)){
+				if(userInfo!=null){
+					userInfo.setPassword(password);
+					commonService.update(userInfo);
+					code = "0";
+					msg = "";
+					responseWriter(response);
+				}else{
+					 code = "9";
+					 msg = "";
+					throw new Exception();
+				}
 			}
+			
 		} catch (Exception e) {
 			responseWriter(code, msg, response);
 		}
