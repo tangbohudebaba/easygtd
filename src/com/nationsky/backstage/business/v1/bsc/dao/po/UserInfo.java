@@ -3,6 +3,7 @@
  */
 package com.nationsky.backstage.business.v1.bsc.dao.po;
 
+import java.io.File;
 import java.sql.Timestamp;
 
 import javax.persistence.Column;
@@ -15,6 +16,8 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.GenericGenerator;
 
+import com.nationsky.backstage.Configuration;
+import com.nationsky.backstage.business.v1.V1Constants;
 import com.nationsky.backstage.core.PO;
 import com.nationsky.backstage.core.bsc.CRUD;
 
@@ -45,11 +48,13 @@ public class UserInfo extends PO {
 	private String name;//用户名
 	private String password;//用户密码：MD5
 	private String headURL;//用户头像图片url
+	private transient String httpHeadURL;
 	private String phone;//用户手机号
 	private String buddyUserIds;//好友userID,空格分开
 	private Integer privateType = 2;//1：指定人可见、2：只有任务相关人员可见[默认]、3：所有人可见；4：所有人不可见
 	private String privateUserIds;//指定任务可见人员userID,空格分开
-	private String pushToken;
+	private String pushToken;//用户设备推送token
+	private transient String userStatus;//与查看你的人之间的关系,1好友,2非好友,3未注册
 	private Timestamp createdAt = new Timestamp(System.currentTimeMillis());//用户创建时间
 	private Timestamp updatedAt = new Timestamp(System.currentTimeMillis());//用户信息更新时间
 	
@@ -140,5 +145,22 @@ public class UserInfo extends PO {
 	public void setPushToken(String pushToken) {
 		this.pushToken = pushToken;
 	}
+
+	public String getHttpHeadURL() {
+		return V1Constants.headImgpathHttp+headURL;
+	}
+
+	public void setHttpHeadURL(String httpHeadURL) {
+		this.httpHeadURL = V1Constants.headImgpathHttp+headURL;
+	}
+
+	public String getUserStatus() {
+		return userStatus;
+	}
+
+	public void setUserStatus(String userStatus) {
+		this.userStatus = userStatus;
+	}
+
 	
 }

@@ -7,6 +7,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sf.json.util.JSONUtils;
 
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.nationsky.backstage.business.common.BusinessBaseAction;
 import com.nationsky.backstage.business.common.BusinessCommonService;
+import com.nationsky.backstage.business.v1.Handler.TaskInfoHandler;
 import com.nationsky.backstage.business.v1.bsc.dao.po.Notify;
 import com.nationsky.backstage.business.v1.bsc.dao.po.TaskInfo;
 import com.nationsky.backstage.business.v1.bsc.dao.po.TaskInfoAndUserInfo;
@@ -232,6 +234,15 @@ public class TaskAction extends BusinessBaseAction {
 			if(taskInfo == null){
 				throw new Exception();
 			}
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
+			if(userInfo == null){
+				throw new Exception();
+			}
+			
+			List<TaskInfoAndUserInfo> taskInfoAndUserInfoList = commonService.findList(TaskInfoAndUserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("taskId", C.Eq, taskId));
+			for (TaskInfoAndUserInfo taskInfoAndUserInfo : taskInfoAndUserInfoList) {
+				Integer oldUserId = taskInfoAndUserInfo.getUserId();
+			}
 			TaskInfo newTaskInfo = new TaskInfo();
 			String[] formats={"yyyy-MM-dd HH:mm:ss"};
 			JSONUtils.getMorpherRegistry().registerMorpher(new TimestampMorpher(formats));
@@ -256,60 +267,49 @@ public class TaskAction extends BusinessBaseAction {
 	}
 	
 	//创建任务
-	@RequestMapping(value = "/create", method = RequestMethod.POST)
+	@RequestMapping(value = "create", method = RequestMethod.POST)
 	public void create(HttpServletRequest request,HttpServletResponse response) {
 		String code = "8", msg = "提交失败";//错误默认值
 		String userId = request.getParameter("userId");
 		String taskInfoJsonStr = request.getParameter("taskInfo");
-		TaskInfo taskInfo = null;
-		int taskId = 0;
+		
+		int taskId = -1;
 		try {
-			if(ValidateUtil.isNull(userId)||ValidateUtil.isNull(taskInfoJsonStr)){
+			taskId = TaskInfoHandler.createTaskInfo(userId, taskInfoJsonStr);
+			if(taskId != -1){
+				code = "0";
+				msg = "";
+				responseWriter(response,"taskId",taskId);
+			} else {
 				throw new Exception();
 			}
-			String[] formats={"yyyy-MM-dd HH:mm:ss"};
-			JSONUtils.getMorpherRegistry().registerMorpher(new TimestampMorpher(formats));
-			taskInfo= (TaskInfo)JSONObject.toBean(JSONObject.fromObject(taskInfoJsonStr), TaskInfo.class);
-			
-			if(ValidateUtil.isNotNull(taskInfo.getMemberUserIds())){
-				taskInfo.setIsHasMembers(1);
-			}
-			taskInfo.setUserId(Integer.parseInt(userId));
-			taskInfo.setCreaterUserId(Integer.parseInt(userId));
-			commonService.create(taskInfo);
-			taskId = taskInfo.getId();
-			TaskInfoAndUserInfo taskInfoAndUserInfo = new TaskInfoAndUserInfo();
-			taskInfoAndUserInfo.setTaskId(taskId);
-			taskInfoAndUserInfo.setIsAgree(1);
-			taskInfoAndUserInfo.setIsFlag(taskInfo.getIsFlag());
-			taskInfoAndUserInfo.setUserId(taskInfo.getUserId());
-			commonService.create(taskInfoAndUserInfo);
-			
-			if(taskInfo.getIsHasMembers() == 1){
-				String[] memberUserIdStrArray = taskInfo.getMemberUserIds().split(",");
-				for (int i = 0; i < memberUserIdStrArray.length; i++) {
-					taskInfoAndUserInfo = new TaskInfoAndUserInfo();
-					taskInfoAndUserInfo.setTaskId(taskId);
-					taskInfoAndUserInfo.setUserId(Integer.parseInt(memberUserIdStrArray[i]));
-					commonService.create(taskInfoAndUserInfo);
-					//生成通知
-					Notify notify = new Notify();
-					notify.setFromUserId(Integer.parseInt(userId));
-//					notify.setFromUserName(fromUserName);
-					notify.setTaskId(taskId);
-					notify.setType(1);
-					notify.setUserId(Integer.parseInt(memberUserIdStrArray[i]));
-					commonService.create(notify);
-				}
-			}
-			
-			code = "0";
-			msg = "";
-			responseWriter(response,"taskId",taskInfo.getId());
 		} catch (Exception e) {
 			responseWriter(code, msg, response);
 		}
 		logger.info("taskId:{} , userId:{},code:{},msg:{}",taskId,userId,code,msg);
+	}
+	
+	//31批量创建任务
+	@RequestMapping(value = "batchCreate", method = RequestMethod.POST)
+	public void batchCreate(HttpServletRequest request,HttpServletResponse response) {
+		String code = "8", msg = "提交失败";//错误默认值
+		String userId = request.getParameter("userId");
+		String taskInfosJsonStr = request.getParameter("taskInfos");//任务json数组
+		
+		StringBuffer sb = new StringBuffer();
+		try {
+			List<String> taskInfoJsonStrList = DateJsonValueProcessorUtil.jsonStrArrayToJsonItemStrList(taskInfosJsonStr);
+			for (String taskInfoJsonStr : taskInfoJsonStrList) {
+				int taskId = TaskInfoHandler.createTaskInfo(userId, taskInfoJsonStr);
+				sb.append(taskId+" ");
+			}
+			code = "0";
+			msg = "";
+			responseWriter(response,"taskIds",sb.toString().trim());
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
+		}
+		logger.info("taskIds:{} , userId:{},code:{},msg:{}",sb.toString(),userId,code,msg);
 	}
 	
 	//退出任务

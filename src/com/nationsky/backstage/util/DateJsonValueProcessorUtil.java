@@ -16,8 +16,12 @@ package com.nationsky.backstage.util;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -57,6 +61,23 @@ public class DateJsonValueProcessorUtil implements JsonValueProcessor {
 	   
 	}
 	
+	public static List<String> jsonStrArrayToJsonItemStrList(Object object){
+		List<String> jsonItemStrList = new ArrayList<String>();
+		
+		JsonConfig config=new JsonConfig();
+		config.registerJsonValueProcessor(Timestamp.class, new DateJsonValueProcessorUtil(Default_DATE_PATTERN));
+		if(object instanceof Collection){
+			 JSONArray jsonArray = JSONArray.fromObject(object,config);
+			 for (int i = 0; i < jsonArray.size(); i++) {
+				 jsonItemStrList.add(jsonArray.getString(i));
+			}
+			 return jsonItemStrList;
+		}else{
+			 return null;
+		}
+	   
+	}
+	
 	/**
 	 * 二级json组合
 	 * @param parent 父节点实体类
@@ -71,15 +92,15 @@ public class DateJsonValueProcessorUtil implements JsonValueProcessor {
 		if(ValidateUtil.isNotNull(accumulateKey)&&child!=null){
 			if(child instanceof Collection || child instanceof Object[]){
 				ResponseMessageJsonObject.accumulate(accumulateKey, JSONArray.fromObject(child,config));
+			}else if(child instanceof String){
+				ResponseMessageJsonObject.accumulate(accumulateKey,child);
+			}else if(ValidateUtil.isPrimitive(child)){
+				ResponseMessageJsonObject.accumulate(accumulateKey,child);
 			}else{
-					if(ValidateUtil.isPrimitive(child)){
-						ResponseMessageJsonObject.accumulate(accumulateKey,child);
-					}else{
-						ResponseMessageJsonObject.accumulate(accumulateKey, JSONObject.fromObject(child,config));
-					}
+				ResponseMessageJsonObject.accumulate(accumulateKey, JSONObject.fromObject(child,config));
 			}
 		}
 		return ResponseMessageJsonObject.toString();
 	}
-
+	
 }

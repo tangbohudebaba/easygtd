@@ -21,7 +21,9 @@ public class CommonTest {
 //		getSetInfo();
 //		getUserInfo();
 //		getInfo();
-		inviteBuddy();
+//		inviteBuddy();
+//		updateHeadPortraitImg();
+		getUserStatus();
 //		create();
 //		update();
 //		new Date(System.currentTimeMillis());
@@ -116,6 +118,22 @@ public class CommonTest {
 		String result = HttpUtil.getResult(urlStr+childUrl, queryString);
 		System.out.println(result);
 	}
+
+	//27 修改头像
+	public static void updateHeadPortraitImg(){
+		String childUrl = "user/updateHeadPortraitImg.ac"; 
+		String queryString = "userId=2";
+		String result = HttpUtil.getResult(urlStr+childUrl, queryString);
+		System.out.println(result);
+	}
+	
+	public static void getUserStatus(){
+		String childUrl = "user/getUserStatus.ac"; 
+		String queryString = "userId=2&phones=18611866642";
+		String result = HttpUtil.getResult(urlStr+childUrl, queryString);
+		System.out.println(result);
+	}
+	
 	
 	//5.	获取任务列表
 	public static void getList(){

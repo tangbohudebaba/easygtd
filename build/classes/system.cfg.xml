@@ -4,4 +4,5 @@
 		<secret>abcdefg</secret>
 		<proxiedContextPath>/meap</proxiedContextPath>
 	</site>
+	<httpRootPath>http://172.16.0.102:8080/easygtd/</httpRootPath><!-- http://123.57.46.100/easygtd/ -->
 </system>

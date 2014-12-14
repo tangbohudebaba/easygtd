@@ -37,6 +37,7 @@ public class FileUploadUtil {
 	private static final int _MAX_UPLOAD_SIZE = 10485760;
 	private static final File _TEMPORARY_FILE = new File(Configuration.TEMPORARY_PATH);
 	
+
 	/**
 	 * 上传文件列表到指定目录
 	 * @param distDir
@@ -91,6 +92,67 @@ public class FileUploadUtil {
 		}
 		
 		return true;
+	}
+	
+	
+
+	/**
+	 * 上传一个文件列表到指定目录
+	 * @param distDir
+	 * @param customFilename 自定义不带扩展名的文件名
+	 * @param request
+	 * @param allowExts
+	 * @return
+	 */
+	public static String upload(String distDir,String customFilename, HttpServletRequest request,List<String> allowExts){
+		
+		if(!ServletFileUpload.isMultipartContent(request)) return null;
+		//如果没有上传目的目录，则创建它
+		if(!(new File(distDir).isDirectory())){
+            try{
+                new File(distDir).mkdirs();
+            }catch(SecurityException e){
+            	e.printStackTrace();
+            }
+        }
+		
+		//上传项目只要足够小，就应该保留在内存里。 
+        //较大的项目应该被写在硬盘的临时文件上。 
+        //非常大的上传请求应该避免。 
+        //限制项目在内存中所占的空间，限制最大的上传请求，并且设定临时文件的位置。      
+        //设置最多只允许在内存中存储的数据,单位:字节
+        
+		DiskFileItemFactory  factory = new DiskFileItemFactory();
+		factory.setSizeThreshold(FileUploadUtil._THRESHOLD_SIZE);
+		//设置一旦文件大小超过getSizeThreshold()的值时数据存放在硬盘的目录
+		factory.setRepository(_TEMPORARY_FILE);
+		ServletFileUpload sfu = new ServletFileUpload(factory);
+		//设置允许用户上传文件大小,单位:字节
+        //10M 
+		sfu.setSizeMax(_MAX_UPLOAD_SIZE);
+		
+		String saveFileName = null;
+		try {
+			FileItemIterator fii = sfu.getItemIterator(request);
+			while(fii.hasNext()){
+				FileItemStream item = fii.next();
+				if(!item.isFormField()){
+					String name = item.getName();
+					if(ValidateUtil.isNull(name))continue;
+					String filename = FileUtil.getFileName(name);
+					String ext = filename.substring(filename.lastIndexOf(".")+1).toLowerCase();
+					if(!allowExts.contains(ext))continue;
+					InputStream is = item.openStream();
+					saveFileName = StringUtil.concat(distDir,File.separator,customFilename+"."+ext);
+					FileUtil.writeFile(new File(saveFileName), Streams.asString(is,Configuration.getEncoding()), Configuration.getEncoding());
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+		
+		return saveFileName;
 	}
 	
 	/**

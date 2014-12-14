@@ -2,8 +2,11 @@ package com.nationsky.backstage.business.v1.web.action.front;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -14,28 +17,34 @@ import net.sf.json.JSONObject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
+import com.nationsky.backstage.Configuration;
 import com.nationsky.backstage.business.common.BusinessBaseAction;
 import com.nationsky.backstage.business.common.JavaSmsApi;
+import com.nationsky.backstage.business.v1.V1Constants;
 import com.nationsky.backstage.business.v1.Handler.TaskInfoHandler;
 import com.nationsky.backstage.business.v1.bsc.dao.po.AuthCode;
 import com.nationsky.backstage.business.v1.bsc.dao.po.Notify;
+import com.nationsky.backstage.business.v1.bsc.dao.po.Suggest;
 import com.nationsky.backstage.business.v1.bsc.dao.po.TaskInfo;
 import com.nationsky.backstage.business.v1.bsc.dao.po.UserInfo;
 import com.nationsky.backstage.core.Factor;
 import com.nationsky.backstage.core.Factor.C;
+import com.nationsky.backstage.core.Identities;
 import com.nationsky.backstage.util.DateUtil;
+import com.nationsky.backstage.util.FileUtil;
+import com.nationsky.backstage.util.StringUtil;
 import com.nationsky.backstage.util.ValidateUtil;
 
 @Controller
 @RequestMapping(value = "v1/user/")
 public class UserAction extends BusinessBaseAction {
 	static final Logger logger = LoggerFactory.getLogger(UserAction.class);
-	
 	
 	/**
 	 * 用户登录
@@ -49,9 +58,22 @@ public class UserAction extends BusinessBaseAction {
 		String password = request.getParameter("password");
 		String pushToken = request.getParameter("pushToken");
 		try {
+			if(ValidateUtil.isNull(phone) || ValidateUtil.isNull(pushToken) || ValidateUtil.isNull(password)){
+				throw new Exception();
+			}
 			UserInfo userInfo = commonService.getUnique(UserInfo.class, Factor.create("phone", C.Eq, phone));
 			if(userInfo!=null&&ValidateUtil.isEquals(userInfo.getPassword(), password)){
-				userInfo.setPushToken(pushToken);
+				List<UserInfo> userInfoList = commonService.findList(UserInfo.class, 0, Integer.MAX_VALUE,null, Factor.create("pushToken", C.Like, "%"+pushToken+"%"));
+				for (UserInfo userInfo2 : userInfoList) {
+					userInfo2.setPushToken(userInfo2.getPushToken().replace(pushToken, "").trim());
+					commonService.update(userInfo2);
+				}
+				if(ValidateUtil.isNotNull(userInfo.getPushToken())){
+					userInfo.setPushToken((userInfo.getPushToken()+" "+pushToken).trim());
+				}else{
+					userInfo.setPushToken(pushToken);
+				}
+				commonService.update(userInfo);
 				code = "0";
 				msg = "login success";
 				responseWriter(msg, response, "userInfo", userInfo);
@@ -65,18 +87,23 @@ public class UserAction extends BusinessBaseAction {
 	}
 	
 	/**
-	 * 用户登出
+	 * 33用户登出
 	 * @param request
 	 * @param response
 	 */
 	@RequestMapping(value = "/logout", method = RequestMethod.POST)
 	public void logout(HttpServletRequest request,HttpServletResponse response) { 
-		String code = "1", msg = "login fail";//错误默认值
-		String phone = request.getParameter("phone");
-		String password = request.getParameter("password");
+		String code = "8", msg = "logout fail";//错误默认值
+		String userId = request.getParameter("userId");
+		String pushToken = request.getParameter("pushToken");
 		try {
-			UserInfo userInfo = commonService.getUnique(UserInfo.class, Factor.create("phone", C.Eq, phone));
-			if(userInfo!=null&&ValidateUtil.isEquals(userInfo.getPassword(), password)){
+			if(ValidateUtil.isNull(userId) || ValidateUtil.isNull(pushToken)){
+				throw new Exception();
+			}
+			UserInfo userInfo = commonService.getUnique(UserInfo.class, Factor.create("id", C.Eq, Integer.parseInt(userId)));
+			if(userInfo!=null){
+				userInfo.setPushToken(userInfo.getPushToken().replaceAll(pushToken, "").replace("  ", " ").trim());
+				commonService.update(userInfo);
 				code = "0";
 				msg = "login success";
 				responseWriter(msg, response, "userInfo", userInfo);
@@ -86,10 +113,48 @@ public class UserAction extends BusinessBaseAction {
 		} catch (Exception e) {
 			responseWriter(code, msg, response);
 		}
-		logger.info("phone:{},password:{},code:{},msg:{}",phone,password,code,msg);
+		logger.info("userId:{},code:{},msg:{}",userId,code,msg);
 	}
 	
-	
+	/**
+	 * 34上传推送token
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "/uploadPushToken", method = RequestMethod.POST)
+	public void uploadPushToken(HttpServletRequest request,HttpServletResponse response) { 
+		String code = "8", msg = "";//错误默认值
+		String userId = request.getParameter("userId");
+		String oldPushToken = request.getParameter("oldPushToken");
+		String newPushToken = request.getParameter("newPushToken");
+		try {
+			if(ValidateUtil.isNull(userId) || ValidateUtil.isNull(oldPushToken) || ValidateUtil.isNull(newPushToken)){
+				throw new Exception();
+			}
+			UserInfo userInfo = commonService.getUnique(UserInfo.class, Factor.create("id", C.Eq, Integer.parseInt(userId)));
+			if(userInfo!=null){
+				List<UserInfo> userInfoList = commonService.findList(UserInfo.class, 0, Integer.MAX_VALUE,null, Factor.create("pushToken", C.Like, "%"+newPushToken+"%"));
+				for (UserInfo userInfo2 : userInfoList) {
+					userInfo2.setPushToken(userInfo2.getPushToken().replace(newPushToken, "").trim());
+					commonService.update(userInfo2);
+				}
+				if(ValidateUtil.isNotNull(userInfo.getPushToken())){
+					userInfo.setPushToken((userInfo.getPushToken().replace(oldPushToken, newPushToken)).trim());
+				}else{
+					userInfo.setPushToken(newPushToken);
+				}
+				commonService.update(userInfo);
+				code = "0";
+				msg = "";
+				responseWriter(msg, response, "userInfo", userInfo);
+			}else {
+				throw new IOException();
+			}
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
+		}
+		logger.info("oldPushToken:{},newPushToken:{},code:{},msg:{}",oldPushToken,newPushToken,code,msg);
+	}
 	
 	/**
 	 * 获取短信验证码
@@ -418,6 +483,14 @@ public class UserAction extends BusinessBaseAction {
 				}else{
 					userInfoList = commonService.findList(UserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("name", C.Like, "%"+keyword+"%"), Factor.create("name", C.Ne, userInfo.getName()));
 				}
+				
+				for (UserInfo userInfo2 : userInfoList) {
+					if(ValidateUtil.isNotNull(userInfo2.getBuddyUserIds()) && userInfo2.getBuddyUserIds().contains(userId)){
+						userInfo2.setUserStatus("1");
+					}else{
+						userInfo2.setUserStatus("2");
+					}
+				}
 				code = "0";
 				msg = "";
 				responseWriter(response,"members",userInfoList);
@@ -430,6 +503,64 @@ public class UserAction extends BusinessBaseAction {
 		logger.info("code:{},msg:{}",code,msg);
 	}
 	
+	/**
+	 * 32获取人员的注册状态
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "getUserStatus", method = RequestMethod.POST)
+	public void getUserStatus(HttpServletRequest request,HttpServletResponse response) {
+		String code = "8", msg = "提交失败";//错误默认值
+		String userId = request.getParameter("userId");//当前用户id
+		String phones = request.getParameter("phones");//要获取状态的用户手机号,空格分开
+		try {
+			if(ValidateUtil.isNull(userId) && ValidateUtil.isNull(phones)){
+				throw new Exception();
+			}
+			phones = phones.replaceAll("\\+86|-", "").replaceAll(" {2,}", " ");
+			
+			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
+			List<UserInfo> userInfoList = null;
+			if(userInfo != null){
+				Map<String,String> userStatusMap = new HashMap<String, String>();
+				StringBuffer sbUserStatus1 = new StringBuffer();
+				StringBuffer sbUserStatus2 = new StringBuffer();
+				StringBuffer sbUserStatus3 = new StringBuffer();
+				
+				
+				List<String> regPhoneList = new ArrayList<String>();
+				userInfoList = commonService.findList(UserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("phone", C.In, phones.split(" ")), Factor.create("phone", C.Ne, userInfo.getPhone()));
+				for (UserInfo userInfo2 : userInfoList) {
+					regPhoneList.add(userInfo2.getPhone());
+					if(ValidateUtil.isNotNull(userInfo2.getBuddyUserIds()) && userInfo2.getBuddyUserIds().contains(userId)){
+						sbUserStatus1.append(userInfo2.getPhone()+" ");
+					}else{
+						sbUserStatus2.append(userInfo2.getPhone()+" ");
+					}
+				}
+				
+				List<String> phoneList = Arrays.asList(phones.split(" "));
+				for (String phone : phoneList) {
+					if(!regPhoneList.contains(phone)){
+						sbUserStatus3.append(phone+" ");
+					}
+				}
+				
+				userStatusMap.put("userStatus1", sbUserStatus1.toString().trim().replaceAll(" {2,}", " "));
+				userStatusMap.put("userStatus2", sbUserStatus2.toString().trim().replaceAll(" {2,}", " "));
+				userStatusMap.put("userStatus3", sbUserStatus3.toString().trim().replaceAll(" {2,}", " "));
+				
+				code = "0";
+				msg = "";
+				responseWriter(response,"members",userStatusMap);
+			}else{
+				throw new Exception();
+			}
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
+		}
+		logger.info("code:{},msg:{}",code,msg);
+	}
 	/**
 	 * 19.	添加好友
 	 * @param request
@@ -705,9 +836,113 @@ public class UserAction extends BusinessBaseAction {
 		logger.info("code:{},msg:{}, userId:{},msg:{}",userId,buddyUserId);
 	}
 	
+	/**
+	 * 32用户意见反馈
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "/suggest", method = RequestMethod.POST)
+	public void suggest(HttpServletRequest request,HttpServletResponse response) { 
+		String code = "8", msg = "";//错误默认值
+		String userId = request.getParameter("userId");
+		String content = request.getParameter("content");
+		try {
+			if(ValidateUtil.isNull(userId)||ValidateUtil.isNull(content)){
+				throw new Exception();
+			}
+			UserInfo userInfo = commonService.getUnique(UserInfo.class, Factor.create("id", C.Eq, Integer.parseInt(userId)));
+			if(userInfo!=null){
+				Suggest suggest = new Suggest();
+				suggest.setContent(content);
+				commonService.create(suggest);
+				code = "0";
+				msg = "login success";
+				responseWriter(response);
+			}else {
+				throw new IOException();
+			}
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
+		}
+		logger.info("userId:{},code:{},msg:{}",userId,code,msg);
+	}
+	
+	/**
+	 * 27 修改头像
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping(value = "updateHeadPortraitImg", method = RequestMethod.POST)
+	public void updateHeadPortraitImg(HttpServletRequest request,HttpServletResponse response) { 
+		String code = "8", msg = "";//错误默认值
+		String userId = request.getParameter("userId");
+		try {
+			if(ValidateUtil.isNull(userId)){
+				throw new Exception();
+			}
+			UserInfo userInfo = commonService.getUnique(UserInfo.class, Factor.create("id", C.Eq, Integer.parseInt(userId)));
+			if(userInfo!=null){
+				
+//				MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;  
+//		        CommonsMultipartFile file = (CommonsMultipartFile) multipartRequest.getFile("head");
+//		        String uuIDs = Identities.uuid2();
+//		        System.out.println("d:\\"+uuIDs+".jpg");
+//		        String headPortraitImgPath=Configuration.ROOT+File.separator+"uploads";
+//		        FileUtil.writeFile(headPortraitImgPath+uuIDs+".jpg", file.getBytes());
+//		      System.out.println(file.getOriginalFilename());
+				//第一种方法
+//		      FileCopyUtils.copy(file.getBytes(), new File(filePath+"1.jpg"));
+				//第二种方法
+		     
+		       
+		        
+		        
+				
+//				String headPortraitImgPath=Configuration.;
+				logger.info("Configuration.ROOT:"+Configuration.ROOT);
+				MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;  
+		        CommonsMultipartFile file = (CommonsMultipartFile) multipartRequest.getFile("head");
+		        String uuIDs = Identities.uuid2();
+		        String newHeadPortraitImg = uuIDs+".jpg";
+		        String saveFileName = V1Constants.headImgPath+newHeadPortraitImg;
+		        FileUtil.writeFile(saveFileName, file.getBytes());
+//				String saveFileName = FileUploadUtil.upload(headPortraitImgPath, uuIDs, request, allowExts);
+				logger.info("headPortraitImgPath:"+saveFileName);
+				String oldHeadPortraitImg = StringUtil.concat(V1Constants.headImgPath,userInfo.getHeadURL());
+				FileUtil.delete(oldHeadPortraitImg);
+				userInfo.setHeadURL(newHeadPortraitImg);
+				commonService.update(userInfo);
+				code = "0";
+				msg = "img upload success";
+				logger.info( "img upload success:{}",userInfo.getHttpHeadURL());
+				responseWriter(response, "httpHeadURL", userInfo.getHttpHeadURL());
+			}else {
+				throw new IOException();
+			}
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
+		}
+		logger.info("userId:{},code:{},msg:{}",userId,code,msg);
+	}
+	
+	
 	public static void main(String[] args) {
+//		boolean b = "18711866642".matches("((\\d{11})|^((\\d{7,8})|(\\d{4}|\\d{3})-(\\d{7,8})|(\\d{4}|\\d{3})-(\\d{7,8})-(\\d{4}|\\d{3}|\\d{2}|\\d{1})|(\\d{7,8})-(\\d{4}|\\d{3}|\\d{2}|\\d{1}))$)");
+//				System.out.println(b);
+//		System.out.println("Configuration.ROOT:"+Configuration.ROOT);
+//		String phones = "+8612222222222 138-10000000 +86123-2344-3242";
+//		phones = phones.replaceAll("\\+86|-", "");
+//		System.out.println(phones);
+		List<String> a= new ArrayList<String>();
+		a.add("111");
+		a.add("222");
+		a.add("333");
 		
-		boolean b = "18711866642".matches("((\\d{11})|^((\\d{7,8})|(\\d{4}|\\d{3})-(\\d{7,8})|(\\d{4}|\\d{3})-(\\d{7,8})-(\\d{4}|\\d{3}|\\d{2}|\\d{1})|(\\d{7,8})-(\\d{4}|\\d{3}|\\d{2}|\\d{1}))$)");
-				System.out.println(b);
+		
+		List<String> b= new ArrayList<String>();
+		b.add("2424");
+		b.add("23424");
+		a.removeAll(b);
+		System.out.println(a);
 	}
 }

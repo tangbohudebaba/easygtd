@@ -2,6 +2,7 @@ package com.nationsky.backstage.business.v1.web.action.front;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -75,6 +76,30 @@ public class NotifyAction extends BusinessBaseAction {
 			responseWriter(code, msg, response);
 		}
 		logger.info("userId:{},code:{},msg:{}",userId,code,msg);
+	}
+	
+	
+	//30 批量删除通知
+	@RequestMapping(value = "/batchDelete", method = RequestMethod.POST)
+	public void batchDelete(HttpServletRequest request,HttpServletResponse response) {
+		String code = "8", msg = "";//错误默认值
+		String ids = request.getParameter("ids");//通知Id,空格分开
+		try {
+			if(ValidateUtil.isNull(ids)){
+				throw new Exception();
+			}
+			DateUtil.getDate(new Date());
+			List<Notify> notifyList = commonService.findList(Notify.class, 0, Integer.MAX_VALUE, null, Factor.create("id", C.In, ids.split(" ")));
+			for (Notify notify : notifyList) {
+				commonService.remove(notify);
+			}
+			code = "0";
+			msg = "";
+			responseWriter(response);
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
+		}
+		logger.info("ids:{},code:{},msg:{}",ids,code,msg);
 	}
 	
 }
