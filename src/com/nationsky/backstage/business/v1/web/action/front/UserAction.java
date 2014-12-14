@@ -69,7 +69,9 @@ public class UserAction extends BusinessBaseAction {
 					commonService.update(userInfo2);
 				}
 				if(ValidateUtil.isNotNull(userInfo.getPushToken())){
-					userInfo.setPushToken((userInfo.getPushToken()+" "+pushToken).trim());
+					if(!userInfo.getPushToken().contains(pushToken)){
+						userInfo.setPushToken((userInfo.getPushToken()+" "+pushToken).trim());
+					}
 				}else{
 					userInfo.setPushToken(pushToken);
 				}
@@ -105,7 +107,7 @@ public class UserAction extends BusinessBaseAction {
 				userInfo.setPushToken(userInfo.getPushToken().replaceAll(pushToken, "").replace("  ", " ").trim());
 				commonService.update(userInfo);
 				code = "0";
-				msg = "login success";
+				msg = "logout success";
 				responseWriter(msg, response, "userInfo", userInfo);
 			}else {
 				throw new IOException();

@@ -23,7 +23,7 @@ public class CommonTest {
 //		getInfo();
 //		inviteBuddy();
 //		updateHeadPortraitImg();
-		getUserStatus();
+//		getUserStatus();
 //		create();
 //		update();
 //		new Date(System.currentTimeMillis());
@@ -169,6 +169,8 @@ public class CommonTest {
 		System.out.println(result);
 	}
 	
-	
+	public static void pushIOS(){
+		
+	}
 	
 }

@@ -1,13 +1,13 @@
 package com.nationsky.backstage.business.v1.web.action.front;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sf.json.util.JSONUtils;
 
@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.nationsky.backstage.business.common.BusinessBaseAction;
 import com.nationsky.backstage.business.common.BusinessCommonService;
+import com.nationsky.backstage.business.v1.Handler.NotifyHandler;
 import com.nationsky.backstage.business.v1.Handler.TaskInfoHandler;
 import com.nationsky.backstage.business.v1.bsc.dao.po.Notify;
 import com.nationsky.backstage.business.v1.bsc.dao.po.TaskInfo;
@@ -239,10 +240,6 @@ public class TaskAction extends BusinessBaseAction {
 				throw new Exception();
 			}
 			
-			List<TaskInfoAndUserInfo> taskInfoAndUserInfoList = commonService.findList(TaskInfoAndUserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("taskId", C.Eq, taskId));
-			for (TaskInfoAndUserInfo taskInfoAndUserInfo : taskInfoAndUserInfoList) {
-				Integer oldUserId = taskInfoAndUserInfo.getUserId();
-			}
 			TaskInfo newTaskInfo = new TaskInfo();
 			String[] formats={"yyyy-MM-dd HH:mm:ss"};
 			JSONUtils.getMorpherRegistry().registerMorpher(new TimestampMorpher(formats));
@@ -251,12 +248,77 @@ public class TaskAction extends BusinessBaseAction {
 			taskInfo.setEndTime(newTaskInfo.getEndTime());
 			taskInfo.setIsDone(newTaskInfo.getIsDone());
 			taskInfo.setIsFlag(newTaskInfo.getIsFlag());
-			taskInfo.setIsHasMembers(newTaskInfo.getIsHasMembers());
+			if(ValidateUtil.isNotNull(taskInfo.getMemberUserIds())){
+				taskInfo.setIsHasMembers(1);
+			}else{
+				taskInfo.setIsHasMembers(0);
+			}
 			taskInfo.setLocation(newTaskInfo.getLocation());
 			taskInfo.setMemberUserIds(newTaskInfo.getMemberUserIds());
 			taskInfo.setRemark(newTaskInfo.getRemark());
 			taskInfo.setTitle(newTaskInfo.getTitle());
 			commonService.update(taskInfo);
+			
+			if(ValidateUtil.isNotNull(taskInfo.getMemberUserIds())){
+				//任务修改之前的成员
+				List<Integer> beforeUserIdList = new ArrayList<Integer>(); 
+				
+				List<TaskInfoAndUserInfo> taskInfoAndUserInfoList = commonService.findList(TaskInfoAndUserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("taskId", C.Eq, Integer.parseInt(taskId)));
+				for (TaskInfoAndUserInfo taskInfoAndUserInfo : taskInfoAndUserInfoList) {
+					Integer oldUserId = taskInfoAndUserInfo.getUserId();
+					beforeUserIdList.add(oldUserId);
+				}
+				
+				List<String> afterUserIdStrList = Arrays.asList(taskInfo.getMemberUserIds().split(","));
+				//任务修改之后的成员
+				List<Integer> afterUserIdList = new ArrayList<Integer>(); 
+				for (String userIdStr : afterUserIdStrList) {
+					afterUserIdList.add(Integer.parseInt(userIdStr));
+				}
+				
+				//不变的成员
+				List<Integer> nochangeUserIdList = new ArrayList<Integer>(); 
+				//删除的成员
+				List<Integer> deletedUserIdList = new ArrayList<Integer>();
+				//添加的成员
+				List<Integer> newUserIdList = new ArrayList<Integer>();
+				
+				for (Integer afterUserId : afterUserIdList) {
+					if(beforeUserIdList.contains(afterUserId)){
+						nochangeUserIdList.add(afterUserId);
+					}else{
+						newUserIdList.add(afterUserId);
+					}
+				}
+				
+				for (Integer beforeUserId : beforeUserIdList) {
+					if(!afterUserIdList.contains(beforeUserId)){
+						deletedUserIdList.add(beforeUserId);
+					}
+				}
+				
+				for (Integer nochangeUserId : nochangeUserIdList) {
+					NotifyHandler.createNotify(nochangeUserId, nochangeUserId, Integer.parseInt(taskId), 8);
+				}
+				
+				for (Integer newUserId : newUserIdList) {
+					TaskInfoAndUserInfo taskInfoAndUserInfo = new TaskInfoAndUserInfo();
+					taskInfoAndUserInfo.setTaskId(Integer.parseInt(taskId));
+					taskInfoAndUserInfo.setUserId(newUserId);
+					BusinessCommonService.commonService.create(taskInfoAndUserInfo);
+					//生成通知
+					NotifyHandler.createNotify(newUserId, Integer.parseInt(userId), Integer.parseInt(taskId), 1);
+				}
+				
+				for (Integer deletedUserId : deletedUserIdList) {
+					List<TaskInfoAndUserInfo> taskInfoAndUserInfoList1 = commonService.findList(TaskInfoAndUserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("taskId", C.Eq, Integer.parseInt(taskId)), Factor.create("userId", C.Eq, deletedUserId));
+					for (TaskInfoAndUserInfo taskInfoAndUserInfo : taskInfoAndUserInfoList1) {
+						commonService.remove(taskInfoAndUserInfo);
+						NotifyHandler.createNotify(deletedUserId, Integer.parseInt(userId), Integer.parseInt(taskId), 4);
+					}
+				}
+			}
+			
 			code = "0";
 			msg = "";
 			responseWriter(response,"taskId",taskInfo.getId());
