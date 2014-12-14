@@ -27,6 +27,7 @@ import com.nationsky.backstage.Configuration;
 import com.nationsky.backstage.business.common.BusinessBaseAction;
 import com.nationsky.backstage.business.common.JavaSmsApi;
 import com.nationsky.backstage.business.v1.V1Constants;
+import com.nationsky.backstage.business.v1.Handler.NotifyHandler;
 import com.nationsky.backstage.business.v1.Handler.TaskInfoHandler;
 import com.nationsky.backstage.business.v1.bsc.dao.po.AuthCode;
 import com.nationsky.backstage.business.v1.bsc.dao.po.Notify;
@@ -592,11 +593,12 @@ public class UserAction extends BusinessBaseAction {
 			List<Notify> notifyList = commonService.findList(Notify.class, 0, Integer.MAX_VALUE, null, Factor.create("userId", C.Eq, Integer.parseInt(buddyUserId)), Factor.create("fromUserId", C.Eq, Integer.parseInt(userId)), Factor.create("type", C.Eq, 7));
 			if(!ValidateUtil.isNullCollection(notifyList) || notifyList.size() == 0){
 					//生成通知
-					Notify notify = new Notify();
-					notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
-					notify.setType(7);
-					notify.setUserId(Integer.parseInt(buddyUserId));//被通知用户ID
-					commonService.create(notify);
+				NotifyHandler.createNotify(Integer.parseInt(buddyUserId), Integer.parseInt(userId), -1, 7);
+//					Notify notify = new Notify();
+//					notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
+//					notify.setType(7);
+//					notify.setUserId(Integer.parseInt(buddyUserId));//被通知用户ID
+//					commonService.create(notify);
 				}
 				
 				code = "0";
@@ -689,15 +691,21 @@ public class UserAction extends BusinessBaseAction {
 					commonService.update(buddyuserInfo);
 				}
 				//生成通知
-				Notify notify = new Notify();
-				notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
 				if(ValidateUtil.isEquals("1", isAgree)){
-					notify.setType(10);
+					NotifyHandler.createNotify(Integer.parseInt(buddyUserId), Integer.parseInt(userId), -1, 10);
 				}else{
-					notify.setType(11);
+					NotifyHandler.createNotify(Integer.parseInt(buddyUserId), Integer.parseInt(userId), -1, 11);
 				}
-				notify.setUserId(Integer.parseInt(buddyUserId));//被通知用户ID
-				commonService.create(notify);
+//				
+//				Notify notify = new Notify();
+//				notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
+//				if(ValidateUtil.isEquals("1", isAgree)){
+//					notify.setType(10);
+//				}else{
+//					notify.setType(11);
+//				}
+//				notify.setUserId(Integer.parseInt(buddyUserId));//被通知用户ID
+//				commonService.create(notify);
 				code = "0";
 				msg = "";
 				responseWriter(response);
@@ -927,24 +935,4 @@ public class UserAction extends BusinessBaseAction {
 		logger.info("userId:{},code:{},msg:{}",userId,code,msg);
 	}
 	
-	
-	public static void main(String[] args) {
-//		boolean b = "18711866642".matches("((\\d{11})|^((\\d{7,8})|(\\d{4}|\\d{3})-(\\d{7,8})|(\\d{4}|\\d{3})-(\\d{7,8})-(\\d{4}|\\d{3}|\\d{2}|\\d{1})|(\\d{7,8})-(\\d{4}|\\d{3}|\\d{2}|\\d{1}))$)");
-//				System.out.println(b);
-//		System.out.println("Configuration.ROOT:"+Configuration.ROOT);
-//		String phones = "+8612222222222 138-10000000 +86123-2344-3242";
-//		phones = phones.replaceAll("\\+86|-", "");
-//		System.out.println(phones);
-		List<String> a= new ArrayList<String>();
-		a.add("111");
-		a.add("222");
-		a.add("333");
-		
-		
-		List<String> b= new ArrayList<String>();
-		b.add("2424");
-		b.add("23424");
-		a.removeAll(b);
-		System.out.println(a);
-	}
 }

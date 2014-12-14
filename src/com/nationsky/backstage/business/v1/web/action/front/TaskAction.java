@@ -17,8 +17,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.nationsky.backstage.business.common.BaiduIosPush;
 import com.nationsky.backstage.business.common.BusinessBaseAction;
 import com.nationsky.backstage.business.common.BusinessCommonService;
+import com.nationsky.backstage.business.v1.V1Constants;
 import com.nationsky.backstage.business.v1.Handler.NotifyHandler;
 import com.nationsky.backstage.business.v1.Handler.TaskInfoHandler;
 import com.nationsky.backstage.business.v1.bsc.dao.po.Notify;
@@ -98,12 +100,14 @@ public class TaskAction extends BusinessBaseAction {
 			//生成通知
 			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class, Factor.create("id", C.Eq, Integer.parseInt(taskId)));
 			if(Integer.parseInt(userId) != taskInfo.getCreaterUserId()){
-				Notify notify = new Notify();
-				notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
-				notify.setTaskId(Integer.parseInt(taskId));
-				notify.setType(5);
-				notify.setUserId(taskInfo.getCreaterUserId());//被通知用户ID
-				commonService.create(notify);
+				NotifyHandler.createNotify(taskInfo.getCreaterUserId(), Integer.parseInt(userId), Integer.parseInt(taskId), 5);
+//				Notify notify = new Notify();
+//				notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
+//				notify.setTaskId(Integer.parseInt(taskId));
+//				notify.setType(5);
+//				notify.setUserId(taskInfo.getCreaterUserId());//被通知用户ID
+//				commonService.create(notify);
+				
 			}
 			code = "0";
 			msg = "";
@@ -160,12 +164,13 @@ public class TaskAction extends BusinessBaseAction {
 			for (TaskInfoAndUserInfo taskInfoAndUserInfo : taskInfoAndUserInfoList) {
 				commonService.remove(taskInfoAndUserInfo);
 				//生成通知
-				Notify notify = new Notify();
-				notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
-				notify.setTaskId(Integer.parseInt(taskId));
-				notify.setType(4);
-				notify.setUserId(taskInfoAndUserInfo.getUserId());//被通知用户ID
-				commonService.create(notify);
+				NotifyHandler.createNotify(taskInfoAndUserInfo.getUserId(), Integer.parseInt(userId), Integer.parseInt(taskId), 4);
+//				Notify notify = new Notify();
+//				notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
+//				notify.setTaskId(Integer.parseInt(taskId));
+//				notify.setType(4);
+//				notify.setUserId(taskInfoAndUserInfo.getUserId());//被通知用户ID
+//				commonService.create(notify);
 			}
 			code = "0";
 			msg = "";
@@ -390,13 +395,15 @@ public class TaskAction extends BusinessBaseAction {
 			}
 			commonService.remove(taskInfoAndUserInfo);
 			//生成通知
-			Notify notify = new Notify();
-			notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
-			notify.setTaskId(Integer.parseInt(taskId));
-			notify.setType(9);
 			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class, Factor.create("id", C.Eq, Integer.parseInt(taskId)));
-			notify.setUserId(taskInfo.getCreaterUserId());//被通知用户ID
-			commonService.create(notify);
+			NotifyHandler.createNotify(taskInfo.getCreaterUserId(), Integer.parseInt(userId), Integer.parseInt(taskId), 9);
+//			Notify notify = new Notify();
+//			notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
+//			notify.setTaskId(Integer.parseInt(taskId));
+//			notify.setType(9);
+////			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class, Factor.create("id", C.Eq, Integer.parseInt(taskId)));
+//			notify.setUserId(taskInfo.getCreaterUserId());//被通知用户ID
+//			commonService.create(notify);
 			code = "0";
 			msg = "";
 			responseWriter(response);
@@ -423,13 +430,14 @@ public class TaskAction extends BusinessBaseAction {
 			}
 			commonService.remove(taskInfoAndUserInfo);
 			//生成通知
-			Notify notify = new Notify();
-			notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
-			notify.setTaskId(Integer.parseInt(taskId));
-			notify.setType(2);
 			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class, Factor.create("id", C.Eq, Integer.parseInt(taskId)));
-			notify.setUserId(taskInfo.getCreaterUserId());//被通知用户ID
-			commonService.create(notify);
+			NotifyHandler.createNotify(taskInfo.getCreaterUserId(), Integer.parseInt(userId), Integer.parseInt(taskId), 2);
+//			Notify notify = new Notify();
+//			notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
+//			notify.setTaskId(Integer.parseInt(taskId));
+//			notify.setType(2);
+//			notify.setUserId(taskInfo.getCreaterUserId());//被通知用户ID
+//			commonService.create(notify);
 			code = "0";
 			msg = "";
 			responseWriter(response);
@@ -457,13 +465,16 @@ public class TaskAction extends BusinessBaseAction {
 			taskInfoAndUserInfo.setIsAgree(1);
 			commonService.update(taskInfoAndUserInfo);
 			//生成通知
-			Notify notify = new Notify();
-			notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
-			notify.setTaskId(Integer.parseInt(taskId));
-			notify.setType(3);
 			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class, Factor.create("id", C.Eq, Integer.parseInt(taskId)));
-			notify.setUserId(taskInfo.getCreaterUserId());//被通知用户ID
-			commonService.create(notify);
+			NotifyHandler.createNotify(taskInfo.getCreaterUserId(), Integer.parseInt(userId), Integer.parseInt(taskId), 3);
+			
+//			Notify notify = new Notify();
+//			notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
+//			notify.setTaskId(Integer.parseInt(taskId));
+//			notify.setType(3);
+//			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class, Factor.create("id", C.Eq, Integer.parseInt(taskId)));
+//			notify.setUserId(taskInfo.getCreaterUserId());//被通知用户ID
+//			commonService.create(notify);
 			code = "0";
 			msg = "";
 			responseWriter(response);

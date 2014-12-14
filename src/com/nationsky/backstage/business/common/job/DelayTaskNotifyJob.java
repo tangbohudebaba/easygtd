@@ -8,11 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.nationsky.backstage.business.common.BusinessCommonService;
-import com.nationsky.backstage.business.v1.bsc.dao.po.AuthCode;
-import com.nationsky.backstage.business.v1.bsc.dao.po.Notify;
-import com.nationsky.backstage.business.v1.bsc.dao.po.TaskInfo;
-import com.nationsky.backstage.core.Factor;
-import com.nationsky.backstage.core.Factor.C;
+import com.nationsky.backstage.business.v1.Handler.NotifyHandler;
 
 
 /**
@@ -42,12 +38,13 @@ public class DelayTaskNotifyJob implements Job {
 			Integer userId = taskIdAnduserId.get(1);
 			//生成通知
 			if(taskId != null && userId != null){
-				Notify notify = new Notify();
-				notify.setFromUserId(null);//来源人员姓名
-				notify.setTaskId(taskId);
-				notify.setType(6);
-				notify.setUserId(userId);//被通知用户ID
-				BusinessCommonService.commonService.create(notify);
+				NotifyHandler.createNotify(userId, -1, taskId, 6);
+//				Notify notify = new Notify();
+//				notify.setFromUserId(null);//来源人员姓名
+//				notify.setTaskId(taskId);
+//				notify.setType(6);
+//				notify.setUserId(userId);//被通知用户ID
+//				BusinessCommonService.commonService.create(notify);
 			}
 		}
 		logger.info("send delay task notify count:"+taskIdAnduserIdList.size());

@@ -5,4 +5,10 @@
 		<proxiedContextPath>/meap</proxiedContextPath>
 	</site>
 	<httpRootPath>http://172.13.1.111:8080/easygtd/</httpRootPath><!-- http://123.57.46.100/easygtd/ -->
+	<push>
+		<deployStatus>1</deployStatus><!-- 部署状态,1: Developer 2:Production -->
+		<baiduApiKey>YKfSMKqtwp1LeKxX1938QIjY</baiduApiKey>
+		<baiduSecretKey>SXS70DxObLgHZR33k5tXHfVVqPq9cZxw</baiduSecretKey>
+	</push>
+	
 </system>

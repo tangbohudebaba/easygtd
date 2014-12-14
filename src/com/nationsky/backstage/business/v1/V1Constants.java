@@ -18,5 +18,6 @@ import com.nationsky.backstage.core.Constants;
 public interface V1Constants extends Constants {
 	String headImgPath = Configuration.ROOT+File.separator+"uploads"+File.separator;
 	String headImgpathHttp = Configuration.get("httpRootPath")+"uploads/";
+	int baiduPushDeployStatus = Configuration.Config.getInt("push.deployStatus");
 	
 }
