@@ -88,8 +88,12 @@ public class NotifyAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(ids)){
 				throw new Exception();
 			}
-			DateUtil.getDate(new Date());
-			List<Notify> notifyList = commonService.findList(Notify.class, 0, Integer.MAX_VALUE, null, Factor.create("id", C.In, ids.split(" ")));
+			String[] idstrArray = ids.split(" ");
+			Integer[] idArray = new Integer[ids.split(" ").length];
+			for (int i = 0; i < idstrArray.length; i++) {
+				idArray[i] = Integer.parseInt(idstrArray[i]);
+			}
+			List<Notify> notifyList = commonService.findList(Notify.class, 0, Integer.MAX_VALUE, null, Factor.create("id", C.In, idArray));
 			for (Notify notify : notifyList) {
 				commonService.remove(notify);
 			}

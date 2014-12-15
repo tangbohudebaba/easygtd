@@ -17,13 +17,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.nationsky.backstage.business.common.BaiduIosPush;
 import com.nationsky.backstage.business.common.BusinessBaseAction;
 import com.nationsky.backstage.business.common.BusinessCommonService;
-import com.nationsky.backstage.business.v1.V1Constants;
 import com.nationsky.backstage.business.v1.Handler.NotifyHandler;
 import com.nationsky.backstage.business.v1.Handler.TaskInfoHandler;
-import com.nationsky.backstage.business.v1.bsc.dao.po.Notify;
 import com.nationsky.backstage.business.v1.bsc.dao.po.TaskInfo;
 import com.nationsky.backstage.business.v1.bsc.dao.po.TaskInfoAndUserInfo;
 import com.nationsky.backstage.business.v1.bsc.dao.po.UserInfo;
@@ -197,8 +194,10 @@ public class TaskAction extends BusinessBaseAction {
 				throw new Exception();
 			}
 			TaskInfoAndUserInfo taskInfoAndUserInfo = commonService.getUnique(TaskInfoAndUserInfo.class, Factor.create("userId", C.Eq, Integer.parseInt(userId)),  Factor.create("taskId", C.Eq, Integer.parseInt(taskId)));
-			taskInfo.setIsDone(taskInfoAndUserInfo.getIsDone());
-			taskInfo.setIsFlag(taskInfoAndUserInfo.getIsFlag());
+			if(taskInfoAndUserInfo != null){
+				taskInfo.setIsDone(taskInfoAndUserInfo.getIsDone());
+				taskInfo.setIsFlag(taskInfoAndUserInfo.getIsFlag());
+			}
 			List<UserInfo> userInfoList = null;
 			if(taskInfo.getIsHasMembers()==1){
 				List<TaskInfoAndUserInfo> taskInfoAndUserInfoList1 = commonService.findList(TaskInfoAndUserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("taskId", C.Eq, taskInfo.getId()), Factor.create("isAgree", C.Eq, 1));
