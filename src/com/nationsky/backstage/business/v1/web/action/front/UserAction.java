@@ -685,8 +685,16 @@ public class UserAction extends BusinessBaseAction {
 					return;
 				}
 				if(ValidateUtil.isEquals("1", isAgree)){
-					userInfo.setBuddyUserIds((userInfo.getBuddyUserIds()+" "+buddyuserInfo.getId()).trim());
-					buddyuserInfo.setBuddyUserIds((buddyuserInfo.getBuddyUserIds()+" "+userInfo.getId()).trim());
+					if(ValidateUtil.isNull(userInfo.getBuddyUserIds())){
+						userInfo.setBuddyUserIds(buddyuserInfo.getId().toString());
+					}else{
+						userInfo.setBuddyUserIds((userInfo.getBuddyUserIds()+" "+buddyuserInfo.getId()).trim());
+					}
+					if(ValidateUtil.isNull(buddyuserInfo.getBuddyUserIds())){
+						buddyuserInfo.setBuddyUserIds(userInfo.getId().toString());
+					}else{
+						buddyuserInfo.setBuddyUserIds((buddyuserInfo.getBuddyUserIds()+" "+userInfo.getId()).trim());
+					}
 					commonService.update(userInfo);
 					commonService.update(buddyuserInfo);
 				}
