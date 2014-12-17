@@ -666,8 +666,10 @@ public class UserAction extends BusinessBaseAction {
 		String userId = request.getParameter("userId");
 		String buddyUserId = request.getParameter("buddyUserId");
 		String isAgree = request.getParameter("isAgree");//是否同意，1为同意
+		String notifyId = request.getParameter("notifyId");//通知Id
+		
 		try {
-			if(ValidateUtil.isNull(userId) && ValidateUtil.isNull(buddyUserId)){
+			if(ValidateUtil.isNull(userId) || ValidateUtil.isNull(buddyUserId) || ValidateUtil.isNull(notifyId)){
 				throw new Exception();
 			}
 			if(ValidateUtil.isEquals(userId, buddyUserId)){
@@ -698,6 +700,8 @@ public class UserAction extends BusinessBaseAction {
 					commonService.update(userInfo);
 					commonService.update(buddyuserInfo);
 				}
+				//删除通知
+				NotifyHandler.deleteNotifyById(Integer.parseInt(notifyId));
 				//生成通知
 				if(ValidateUtil.isEquals("1", isAgree)){
 					NotifyHandler.createNotify(Integer.parseInt(buddyUserId), Integer.parseInt(userId), -1, 10);
@@ -767,7 +771,7 @@ public class UserAction extends BusinessBaseAction {
 		String beginTime = request.getParameter("beginTime");
 		String endTime = request.getParameter("endTime");
 		try {
-			if(ValidateUtil.isNull(userId) && ValidateUtil.isNull(buddyUserId)){
+			if(ValidateUtil.isNull(userId) || ValidateUtil.isNull(buddyUserId)){
 				throw new Exception();
 			}
 			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));

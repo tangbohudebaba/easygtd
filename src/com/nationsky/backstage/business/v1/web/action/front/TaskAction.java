@@ -115,6 +115,43 @@ public class TaskAction extends BusinessBaseAction {
 		logger.info("taskId:{} , userId:{},code:{},msg:{}",taskId,userId,code,msg);
 	}
 	
+	//取消做完任务
+	@RequestMapping(value = "/cancelDone", method = RequestMethod.POST)
+	public void cancelDone(HttpServletRequest request,HttpServletResponse response) {
+		String code = "8", msg = "提交做完任务失败";//错误默认值
+		String userId = request.getParameter("userId");
+		String taskId = request.getParameter("taskId");
+		try {
+			if(ValidateUtil.isNull(userId)||ValidateUtil.isNull(taskId)){
+				throw new Exception();
+			}
+			TaskInfoAndUserInfo taskInfoAndUserInfo = commonService.getUnique(TaskInfoAndUserInfo.class, Factor.create("userId", C.Eq, Integer.parseInt(userId)),Factor.create("taskId", C.Eq, Integer.parseInt(taskId)));
+			if(taskInfoAndUserInfo == null){
+				throw new Exception();
+			}
+			taskInfoAndUserInfo.setIsDone(0);
+			commonService.update(taskInfoAndUserInfo);
+			//生成通知
+			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class, Factor.create("id", C.Eq, Integer.parseInt(taskId)));
+			if(Integer.parseInt(userId) != taskInfo.getCreaterUserId()){
+				NotifyHandler.createNotify(taskInfo.getCreaterUserId(), Integer.parseInt(userId), Integer.parseInt(taskId), 12);
+//				Notify notify = new Notify();
+//				notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
+//				notify.setTaskId(Integer.parseInt(taskId));
+//				notify.setType(5);
+//				notify.setUserId(taskInfo.getCreaterUserId());//被通知用户ID
+//				commonService.create(notify);
+				
+			}
+			code = "0";
+			msg = "";
+			responseWriter(response);
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
+		}
+		logger.info("taskId:{} , userId:{},code:{},msg:{}",taskId,userId,code,msg);
+	}
+	
 	//星标任务
 	@RequestMapping(value = "/setTarget", method = RequestMethod.POST)
 	public void setTarget(HttpServletRequest request,HttpServletResponse response) {
@@ -384,6 +421,7 @@ public class TaskAction extends BusinessBaseAction {
 		String code = "8", msg = "提交失败";//错误默认值
 		String userId = request.getParameter("userId");
 		String taskId = request.getParameter("taskId");
+		
 		try {
 			if(ValidateUtil.isNull(userId)||ValidateUtil.isNull(taskId)){
 				throw new Exception();
@@ -394,9 +432,11 @@ public class TaskAction extends BusinessBaseAction {
 			}
 			commonService.remove(taskInfoAndUserInfo);
 			//生成通知
-			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class, Factor.create("id", C.Eq, Integer.parseInt(taskId)));
-			NotifyHandler.createNotify(taskInfo.getCreaterUserId(), Integer.parseInt(userId), Integer.parseInt(taskId), 9);
-//			Notify notify = new Notify();
+			if(taskInfoAndUserInfo.getIsDone() != 1){
+				TaskInfo taskInfo = commonService.getUnique(TaskInfo.class, Factor.create("id", C.Eq, Integer.parseInt(taskId)));
+				NotifyHandler.createNotify(taskInfo.getCreaterUserId(), Integer.parseInt(userId), Integer.parseInt(taskId), 9);
+			}
+			//			Notify notify = new Notify();
 //			notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
 //			notify.setTaskId(Integer.parseInt(taskId));
 //			notify.setType(9);
@@ -419,8 +459,9 @@ public class TaskAction extends BusinessBaseAction {
 		String code = "8", msg = "提交失败";//错误默认值
 		String userId = request.getParameter("userId");
 		String taskId = request.getParameter("taskId");
+		String notifyId = request.getParameter("notifyId");//通知Id
 		try {
-			if(ValidateUtil.isNull(userId)||ValidateUtil.isNull(taskId)){
+			if(ValidateUtil.isNull(userId)||ValidateUtil.isNull(taskId)|| ValidateUtil.isNull(notifyId)){
 				throw new Exception();
 			}
 			TaskInfoAndUserInfo taskInfoAndUserInfo = commonService.getUnique(TaskInfoAndUserInfo.class, Factor.create("userId", C.Eq, Integer.parseInt(userId)),  Factor.create("taskId", C.Eq, Integer.parseInt(taskId)), Factor.create("isAgree", C.Eq, 0));
@@ -428,6 +469,9 @@ public class TaskAction extends BusinessBaseAction {
 				throw new Exception();
 			}
 			commonService.remove(taskInfoAndUserInfo);
+			//删除通知
+			NotifyHandler.deleteNotifyById(Integer.parseInt(notifyId));
+			
 			//生成通知
 			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class, Factor.create("id", C.Eq, Integer.parseInt(taskId)));
 			NotifyHandler.createNotify(taskInfo.getCreaterUserId(), Integer.parseInt(userId), Integer.parseInt(taskId), 2);
@@ -453,8 +497,9 @@ public class TaskAction extends BusinessBaseAction {
 		String code = "8", msg = "提交失败";//错误默认值
 		String userId = request.getParameter("userId");
 		String taskId = request.getParameter("taskId");
+		String notifyId = request.getParameter("notifyId");//通知Id
 		try {
-			if(ValidateUtil.isNull(userId)||ValidateUtil.isNull(taskId)){
+			if(ValidateUtil.isNull(userId) || ValidateUtil.isNull(taskId) || ValidateUtil.isNull(notifyId)){
 				throw new Exception();
 			}
 			TaskInfoAndUserInfo taskInfoAndUserInfo = commonService.getUnique(TaskInfoAndUserInfo.class, Factor.create("userId", C.Eq, Integer.parseInt(userId)),  Factor.create("taskId", C.Eq, Integer.parseInt(taskId)), Factor.create("isAgree", C.Eq, 0));
@@ -463,6 +508,9 @@ public class TaskAction extends BusinessBaseAction {
 			}
 			taskInfoAndUserInfo.setIsAgree(1);
 			commonService.update(taskInfoAndUserInfo);
+			//删除通知
+			NotifyHandler.deleteNotifyById(Integer.parseInt(notifyId));
+			
 			//生成通知
 			TaskInfo taskInfo = commonService.getUnique(TaskInfo.class, Factor.create("id", C.Eq, Integer.parseInt(taskId)));
 			NotifyHandler.createNotify(taskInfo.getCreaterUserId(), Integer.parseInt(userId), Integer.parseInt(taskId), 3);

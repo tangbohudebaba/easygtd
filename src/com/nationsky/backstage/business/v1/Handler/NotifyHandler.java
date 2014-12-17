@@ -17,7 +17,7 @@ public class NotifyHandler {
 	 * @param userId 被通知用户ID
 	 * @param fromUserId 来源人员Id
 	 * @param taskId 任务Id
-	 * @param type 通知类型: 1收到任务邀请类型, 2任务被拒绝类型, 3任务被同意类型, 4任务被删除类型, 5任务已完成类型, 6任务延期类型(还没写), 7好友添加通知, 8任务修改类型(还没写), 9退出任务类型, 10同意好友添加通知, 11拒绝好友添加通知
+	 * @param type 通知类型: 1收到任务邀请类型, 2任务被拒绝类型, 3任务被同意类型, 4任务被删除类型, 5任务已完成类型, 6任务延期类型(还没写), 7好友添加通知, 8任务修改类型(还没写), 9退出任务类型, 10同意好友添加通知, 11拒绝好友添加通知,12取消完成任务
 	 * @return
 	 */
 	public static int createNotify(int userId, int fromUserId,int taskId, int type){
@@ -68,6 +68,8 @@ public class NotifyHandler {
 						content =  fromUserInfo.getName()+"同意添加您为好友";
 					}else if(type == 11){
 						content =  fromUserInfo.getName()+"拒绝添加您为好友";
+					}else if(type == 12){
+						content =  fromUserInfo.getName()+"取消完成任务:"+taskInfo.getTitle();
 					}
 					BaiduIosPush.IosPush(V1Constants.baiduPushDeployStatus, baiduUserId, baiduChannelId, content);
 				}
@@ -77,6 +79,16 @@ public class NotifyHandler {
 		} catch (Exception e) {
 			return notifyId;
 		}
+	}
+	
+	public static boolean deleteNotifyById(Integer notifyId){
+		try {
+			BusinessCommonService.commonService.remove(Notify.class, notifyId);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+		
 	}
 	
 }
