@@ -197,8 +197,10 @@ public class TaskAction extends BusinessBaseAction {
 			commonService.update(taskInfo);
 			for (TaskInfoAndUserInfo taskInfoAndUserInfo : taskInfoAndUserInfoList) {
 				commonService.remove(taskInfoAndUserInfo);
-				//生成通知
-				NotifyHandler.createNotify(taskInfoAndUserInfo.getUserId(), Integer.parseInt(userId), Integer.parseInt(taskId), 4);
+				if(Integer.parseInt(userId) != taskInfoAndUserInfo.getUserId()){
+					//生成通知
+					NotifyHandler.createNotify(taskInfoAndUserInfo.getUserId(), Integer.parseInt(userId), Integer.parseInt(taskId), 4);
+				}
 //				Notify notify = new Notify();
 //				notify.setFromUserId(Integer.parseInt(userId));//来源人员姓名
 //				notify.setTaskId(Integer.parseInt(taskId));
