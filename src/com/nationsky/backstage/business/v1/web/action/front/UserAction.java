@@ -904,31 +904,16 @@ public class UserAction extends BusinessBaseAction {
 			}
 			UserInfo userInfo = commonService.getUnique(UserInfo.class, Factor.create("id", C.Eq, Integer.parseInt(userId)));
 			if(userInfo!=null){
-				
-//				MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;  
-//		        CommonsMultipartFile file = (CommonsMultipartFile) multipartRequest.getFile("head");
-//		        String uuIDs = Identities.uuid2();
-//		        System.out.println("d:\\"+uuIDs+".jpg");
-//		        String headPortraitImgPath=Configuration.ROOT+File.separator+"uploads";
-//		        FileUtil.writeFile(headPortraitImgPath+uuIDs+".jpg", file.getBytes());
-//		      System.out.println(file.getOriginalFilename());
-				//第一种方法
-//		      FileCopyUtils.copy(file.getBytes(), new File(filePath+"1.jpg"));
-				//第二种方法
-		     
-		       
-		        
-		        
-				
-//				String headPortraitImgPath=Configuration.;
 				logger.info("Configuration.ROOT:"+Configuration.ROOT);
 				MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;  
 		        CommonsMultipartFile file = (CommonsMultipartFile) multipartRequest.getFile("head");
 		        String uuIDs = Identities.uuid2();
 		        String newHeadPortraitImg = uuIDs+".jpg";
+		        if(!FileUtil.exists(V1Constants.headImgPath)){
+		        	FileUtil.mkdirs(V1Constants.headImgPath);
+		        }
 		        String saveFileName = V1Constants.headImgPath+newHeadPortraitImg;
 		        FileUtil.writeFile(saveFileName, file.getBytes());
-//				String saveFileName = FileUploadUtil.upload(headPortraitImgPath, uuIDs, request, allowExts);
 				logger.info("headPortraitImgPath:"+saveFileName);
 				String oldHeadPortraitImg = StringUtil.concat(V1Constants.headImgPath,userInfo.getHeadURL());
 				FileUtil.delete(oldHeadPortraitImg);
