@@ -60,10 +60,15 @@ public class UserAction extends BusinessBaseAction {
 		String pushToken = request.getParameter("pushToken");
 		try {
 			if(ValidateUtil.isNull(phone) || ValidateUtil.isNull(pushToken) || ValidateUtil.isNull(password)){
+				msg = "phone,pushToken,password can't null";
 				throw new Exception();
 			}
 			UserInfo userInfo = commonService.getUnique(UserInfo.class, Factor.create("phone", C.Eq, phone));
-			if(userInfo!=null&&ValidateUtil.isEquals(userInfo.getPassword(), password)){
+			if(userInfo!=null){
+				msg = "手机号未注册 ";
+				throw new Exception();
+			}
+			if(ValidateUtil.isEquals(userInfo.getPassword(), password)){
 				List<UserInfo> userInfoList = commonService.findList(UserInfo.class, 0, Integer.MAX_VALUE,null, Factor.create("pushToken", C.Like, "%"+pushToken+"%"));
 				for (UserInfo userInfo2 : userInfoList) {
 					userInfo2.setPushToken(userInfo2.getPushToken().replace(pushToken, "").trim());
@@ -81,6 +86,7 @@ public class UserAction extends BusinessBaseAction {
 				msg = "login success";
 				responseWriter(msg, response, "userInfo", userInfo);
 			}else {
+				msg = "密码错误";
 				throw new IOException();
 			}
 		} catch (Exception e) {
@@ -591,7 +597,7 @@ public class UserAction extends BusinessBaseAction {
 					return;
 				}
 			List<Notify> notifyList = commonService.findList(Notify.class, 0, Integer.MAX_VALUE, null, Factor.create("userId", C.Eq, Integer.parseInt(buddyUserId)), Factor.create("fromUserId", C.Eq, Integer.parseInt(userId)), Factor.create("type", C.Eq, 7));
-			if(!ValidateUtil.isNullCollection(notifyList) || notifyList.size() == 0){
+			if(ValidateUtil.isNullCollection(notifyList) || notifyList.size() == 0){
 					//生成通知
 				NotifyHandler.createNotify(Integer.parseInt(buddyUserId), Integer.parseInt(userId), -1, 7);
 //					Notify notify = new Notify();
