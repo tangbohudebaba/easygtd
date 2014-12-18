@@ -94,7 +94,7 @@ public class BaiduIosPush {
 	}
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		boolean a = IosPush(1, "666283820700770889", 5102311317247673482L, "推送测试啦啦啦");
+		boolean a = IosPush(1, "1034935419650983689", 5650442303431737674L, "推送测试啦啦啦");
 
 	}
 
