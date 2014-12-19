@@ -239,7 +239,7 @@ public class TaskAction extends BusinessBaseAction {
 			}
 			List<UserInfo> userInfoList = null;
 			if(taskInfo.getIsHasMembers()==1 && taskInfoAndUserInfo !=null){
-				List<TaskInfoAndUserInfo> taskInfoAndUserInfoList1 = commonService.findList(TaskInfoAndUserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("taskId", C.Eq, taskInfo.getId()), Factor.create("isAgree", C.Eq, 1));
+				List<TaskInfoAndUserInfo> taskInfoAndUserInfoList1 = commonService.findList(TaskInfoAndUserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("taskId", C.Eq, taskInfo.getId()));//, Factor.create("isAgree", C.Eq, 1)
 				Integer[] memberUserIds= new Integer[taskInfoAndUserInfoList1.size()];
 				for (int i = 0; i < taskInfoAndUserInfoList1.size(); i++) {
 					TaskInfoAndUserInfo taskInfoAndUserInfo1 = taskInfoAndUserInfoList1.get(i);
@@ -304,7 +304,7 @@ public class TaskAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(newTaskInfo.getMemberUserIds())){
 				newTaskInfo.setMemberUserIds(userId);
 			}else{
-				newTaskInfo.setMemberUserIds(","+userId);
+				newTaskInfo.setMemberUserIds(newTaskInfo.getMemberUserIds()+","+userId);
 			}
 			if(ValidateUtil.isNotNull(newTaskInfo.getMemberUserIds())){
 				//任务修改之前的成员
@@ -316,7 +316,7 @@ public class TaskAction extends BusinessBaseAction {
 					beforeUserIdList.add(oldUserId);
 				}
 				
-				List<String> afterUserIdStrList = Arrays.asList(taskInfo.getMemberUserIds().split(","));
+				List<String> afterUserIdStrList = Arrays.asList(newTaskInfo.getMemberUserIds().split(","));
 				//任务修改之后的成员
 				List<Integer> afterUserIdList = new ArrayList<Integer>(); 
 				for (String userIdStr : afterUserIdStrList) {

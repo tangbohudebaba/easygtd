@@ -324,7 +324,8 @@ public class UserAction extends BusinessBaseAction {
 			}
 			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
 			if(userInfo!=null){
-				if(userInfo.getPassword() != oldPassword){
+				if(!ValidateUtil.isEquals(userInfo.getPassword(), oldPassword)){
+					msg = "原始密码错误";
 					throw new Exception();
 				}
 				userInfo.setPassword(newPassword);
