@@ -238,7 +238,7 @@ public class TaskAction extends BusinessBaseAction {
 				taskInfo.setIsFlag(taskInfoAndUserInfo.getIsFlag());
 			}
 			List<UserInfo> userInfoList = null;
-			if(taskInfo.getIsHasMembers()==1){
+			if(taskInfo.getIsHasMembers()==1 && taskInfoAndUserInfo !=null){
 				List<TaskInfoAndUserInfo> taskInfoAndUserInfoList1 = commonService.findList(TaskInfoAndUserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("taskId", C.Eq, taskInfo.getId()), Factor.create("isAgree", C.Eq, 1));
 				Integer[] memberUserIds= new Integer[taskInfoAndUserInfoList1.size()];
 				for (int i = 0; i < taskInfoAndUserInfoList1.size(); i++) {
@@ -291,7 +291,7 @@ public class TaskAction extends BusinessBaseAction {
 			taskInfo.setEndTime(newTaskInfo.getEndTime());
 			taskInfo.setIsDone(newTaskInfo.getIsDone());
 			taskInfo.setIsFlag(newTaskInfo.getIsFlag());
-			if(ValidateUtil.isNotNull(taskInfo.getMemberUserIds())){
+			if(ValidateUtil.isNotNull(newTaskInfo.getMemberUserIds())){
 				taskInfo.setIsHasMembers(1);
 			}else{
 				taskInfo.setIsHasMembers(0);
@@ -302,7 +302,7 @@ public class TaskAction extends BusinessBaseAction {
 			taskInfo.setTitle(newTaskInfo.getTitle());
 			commonService.update(taskInfo);
 			
-			if(ValidateUtil.isNotNull(taskInfo.getMemberUserIds())){
+			if(ValidateUtil.isNotNull(newTaskInfo.getMemberUserIds())){
 				//任务修改之前的成员
 				List<Integer> beforeUserIdList = new ArrayList<Integer>(); 
 				
@@ -341,7 +341,9 @@ public class TaskAction extends BusinessBaseAction {
 				}
 				
 				for (Integer nochangeUserId : nochangeUserIdList) {
-					NotifyHandler.createNotify(nochangeUserId, nochangeUserId, Integer.parseInt(taskId), 8);
+					if(nochangeUserId != Integer.parseInt(userId)){
+					NotifyHandler.createNotify(nochangeUserId, Integer.parseInt(userId), Integer.parseInt(taskId), 8);
+					}
 				}
 				
 				for (Integer newUserId : newUserIdList) {
@@ -350,7 +352,9 @@ public class TaskAction extends BusinessBaseAction {
 					taskInfoAndUserInfo.setUserId(newUserId);
 					BusinessCommonService.commonService.create(taskInfoAndUserInfo);
 					//生成通知
-					NotifyHandler.createNotify(newUserId, Integer.parseInt(userId), Integer.parseInt(taskId), 1);
+					if(newUserId != Integer.parseInt(userId)){
+						NotifyHandler.createNotify(newUserId, Integer.parseInt(userId), Integer.parseInt(taskId), 1);
+					}
 				}
 				
 				for (Integer deletedUserId : deletedUserIdList) {

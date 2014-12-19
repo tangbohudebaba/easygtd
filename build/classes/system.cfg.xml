@@ -4,11 +4,14 @@
 		<secret>abcdefg</secret>
 		<proxiedContextPath>/meap</proxiedContextPath>
 	</site>
-	<httpRootPath>http://172.16.0.:8080/easygtd/</httpRootPath><!-- http://123.57.46.100/easygtd/ -->
+	<!-- 本地测试 -->
+	<!-- <httpRootPath>http://172.16.0.58:8080/easygtd/</httpRootPath> -->
+	<!-- 线上 -->
+	<httpRootPath>http://123.57.46.100/easygtd/</httpRootPath>
 	<push>
 		<deployStatus>1</deployStatus><!-- 部署状态,1: Developer 2:Production -->
-		<baiduApiKey>YKfSMKqtwp1LeKxX1938QIjY</baiduApiKey>
-		<baiduSecretKey>SXS70DxObLgHZR33k5tXHfVVqPq9cZxw</baiduSecretKey>
+		<p12Patch>E:\Easy GTD\Certificates.p12</p12Patch>
+		<p12Password>123456</p12Password>
 	</push>
 	
 </system>

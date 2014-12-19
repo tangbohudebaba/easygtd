@@ -1,8 +1,7 @@
 package com.nationsky.backstage.business.v1.Handler;
 
-import com.nationsky.backstage.business.common.BaiduIosPush;
 import com.nationsky.backstage.business.common.BusinessCommonService;
-import com.nationsky.backstage.business.v1.V1Constants;
+import com.nationsky.backstage.business.v1.bsc.dao.po.IosPush;
 import com.nationsky.backstage.business.v1.bsc.dao.po.Notify;
 import com.nationsky.backstage.business.v1.bsc.dao.po.TaskInfo;
 import com.nationsky.backstage.business.v1.bsc.dao.po.UserInfo;
@@ -23,6 +22,9 @@ public class NotifyHandler {
 	public static int createNotify(int userId, int fromUserId,int taskId, int type){
 		int notifyId = -1;
 		try{
+			if(userId == fromUserId){
+				return notifyId;
+			}
 			//生成通知
 			Notify notify = new Notify();
 			notify.setFromUserId(fromUserId);
@@ -42,9 +44,7 @@ public class NotifyHandler {
 			}
 			String pushTokens = userInfo.getPushToken();
 			if(ValidateUtil.isNotNull(pushTokens)){
-				for (String pushToken : pushTokens.split(" ")) {
-					String baiduUserId = pushToken.split(",")[0];
-					Long baiduChannelId = Long.parseLong(pushToken.split(",")[1]);
+//				for (String pushToken : pushTokens.split(" ")) {
 					String content = "";
 					if(type == 1){
 						content = fromUserInfo.getName()+"任务邀请您加入:"+taskInfo.getTitle();
@@ -71,8 +71,11 @@ public class NotifyHandler {
 					}else if(type == 12){
 						content =  fromUserInfo.getName()+"取消完成任务:"+taskInfo.getTitle();
 					}
-					BaiduIosPush.IosPush(V1Constants.baiduPushDeployStatus, baiduUserId, baiduChannelId, content);
-				}
+					IosPush iosPush = new IosPush();
+					iosPush.setContent(content);
+					iosPush.setUserId(userId);
+					BusinessCommonService.commonService.create(iosPush);
+//				}
 			}
 			
 			return notify.getId();

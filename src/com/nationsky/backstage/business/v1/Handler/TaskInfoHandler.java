@@ -73,6 +73,9 @@ public class TaskInfoHandler {
 			taskInfoAndUserInfo.setIsAgree(1);
 			taskInfoAndUserInfo.setIsFlag(taskInfo.getIsFlag());
 			taskInfoAndUserInfo.setUserId(taskInfo.getUserId());
+			if(taskInfo.getIsDone() == 1){
+				taskInfoAndUserInfo.setIsDone(1);
+			}
 			BusinessCommonService.commonService.create(taskInfoAndUserInfo);
 			
 			if(taskInfo.getIsHasMembers() == 1){
@@ -83,13 +86,14 @@ public class TaskInfoHandler {
 					taskInfoAndUserInfo.setUserId(Integer.parseInt(memberUserIdStrArray[i]));
 					BusinessCommonService.commonService.create(taskInfoAndUserInfo);
 					//生成通知
-					Notify notify = new Notify();
-					notify.setFromUserId(Integer.parseInt(userId));
-//					notify.setFromUserName(fromUserName);
-					notify.setTaskId(taskId);
-					notify.setType(1);
-					notify.setUserId(Integer.parseInt(memberUserIdStrArray[i]));
-					BusinessCommonService.commonService.create(notify);
+					NotifyHandler.createNotify(Integer.parseInt(memberUserIdStrArray[i]), Integer.parseInt(userId), taskId, 1);
+//					Notify notify = new Notify();
+//					notify.setFromUserId(Integer.parseInt(userId));
+////					notify.setFromUserName(fromUserName);
+//					notify.setTaskId(taskId);
+//					notify.setType(1);
+//					notify.setUserId(Integer.parseInt(memberUserIdStrArray[i]));
+//					BusinessCommonService.commonService.create(notify);
 				}
 			}
 			return taskId;

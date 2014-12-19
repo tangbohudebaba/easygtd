@@ -37,15 +37,11 @@ public class TaskInfo extends PO {
 	private Long endTime = 0L;//结束时间戳GTM毫秒数
 	private String location;//地理位置经纬度
 	private Integer isHasMembers = 0;//是否有成员 0无成员 1有成员
-	@Transient
-	private Integer isDone = 0;//是否已完成 0未完成 1已经完成
-	@Transient
-	private Integer isFlag = 0;//是否已星标 0不是星标任务 1是星标任务
+	private transient Integer isDone = 0;//是否已完成 0未完成 1已经完成
+	private transient Integer isFlag = 0;//是否已星标 0不是星标任务 1是星标任务
 	private Integer isDelete = 0;//是否已经被删除  0没删除 1已经删除
-	@Transient
-	private Integer userId;//当前用户ID
-	@Transient
-	private String memberUserIds;//成员用户IDs,英文半角逗号分割
+	private transient Integer userId;//当前用户ID
+	private transient String memberUserIds;//成员用户IDs,英文半角逗号分割
 	private String remark;//备注
 	private Integer createrUserId;//创建任务用户ID
 	private Timestamp createdAt = new Timestamp(System.currentTimeMillis());//任务创建时间

@@ -64,7 +64,7 @@ public class UserAction extends BusinessBaseAction {
 				throw new Exception();
 			}
 			UserInfo userInfo = commonService.getUnique(UserInfo.class, Factor.create("phone", C.Eq, phone));
-			if(userInfo!=null){
+			if(userInfo == null){
 				msg = "手机号未注册 ";
 				throw new Exception();
 			}
@@ -593,7 +593,7 @@ public class UserAction extends BusinessBaseAction {
 				if(ValidateUtil.isNotNull(userInfo.getBuddyUserIds()) && userInfo.getBuddyUserIds().contains(buddyuserInfo.getId().toString())){
 					code = "0";
 					msg = "";
-					responseWriter(response);
+					responseWriter(response,"userStatus","1");
 					return;
 				}
 			List<Notify> notifyList = commonService.findList(Notify.class, 0, Integer.MAX_VALUE, null, Factor.create("userId", C.Eq, Integer.parseInt(buddyUserId)), Factor.create("fromUserId", C.Eq, Integer.parseInt(userId)), Factor.create("type", C.Eq, 7));
@@ -609,7 +609,7 @@ public class UserAction extends BusinessBaseAction {
 				
 				code = "0";
 				msg = "";
-				responseWriter(response);
+				responseWriter(response,"userStatus","2");
 			}else{
 				throw new Exception();
 			}
@@ -643,7 +643,7 @@ public class UserAction extends BusinessBaseAction {
 				//走短信..(待开发)
 				code = "0";
 				msg = "";
-				responseWriter(response);
+				responseWriter(response,"userStatus","3");
 			}else if (userInfo != null && buddyuserInfo != null){//如果好友已经注册过,走添加好友流程
 				if(ValidateUtil.isEquals(userInfo.getPhone(), phone)){
 					throw new Exception();

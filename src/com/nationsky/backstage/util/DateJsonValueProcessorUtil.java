@@ -66,7 +66,8 @@ public class DateJsonValueProcessorUtil implements JsonValueProcessor {
 		
 		JsonConfig config=new JsonConfig();
 		config.registerJsonValueProcessor(Timestamp.class, new DateJsonValueProcessorUtil(Default_DATE_PATTERN));
-		if(object instanceof Collection){
+		
+		if(object != null){
 			 JSONArray jsonArray = JSONArray.fromObject(object,config);
 			 for (int i = 0; i < jsonArray.size(); i++) {
 				 jsonItemStrList.add(jsonArray.getString(i));
