@@ -814,7 +814,7 @@ public class UserAction extends BusinessBaseAction {
 		String userId = request.getParameter("userId");
 		String buddyUserId = request.getParameter("buddyUserId");
 		String date = request.getParameter("date");//当天0点时间戳GTM(秒数)
-		boolean isLook = true;//是否可以看这个人的任务详情
+		
 		try {
 			if(ValidateUtil.isNull(userId) && ValidateUtil.isNull(buddyUserId)){
 				throw new Exception();
@@ -822,16 +822,7 @@ public class UserAction extends BusinessBaseAction {
 			UserInfo userInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(userId)));
 			UserInfo buddyuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(buddyUserId)));
 			if(userInfo != null && buddyuserInfo != null){
-				//1：指定人可见、2：只有任务相关人员可见[默认]、3：所有人可见；4：所有人不可见
-				if(buddyuserInfo.getPrivateType() == 1){
-					if(ValidateUtil.isNull(buddyuserInfo.getPrivateUserIds()) || !buddyuserInfo.getPrivateUserIds().contains(userId)){
-						isLook = false;
-					}
-				}else if(buddyuserInfo.getPrivateType() == 2){
-					//在下面的for循环里面判断
-				}else if(buddyuserInfo.getPrivateType() == 4){
-					isLook = false;
-				}
+			
 				
 				
 				String hqlTmp = "select new list(t.id) from TaskInfo as t , TaskInfoAndUserInfo as tu where tu.taskId = t.id and tu.userId = %s and tu.isAgree = 1 and t.beginTime >= %s and t.beginTime <= %s";
@@ -842,8 +833,21 @@ public class UserAction extends BusinessBaseAction {
 					int taskId = taskIdList.get(i).get(0);
 					TaskInfo taskInfo = TaskInfoHandler.getUserTaskInfo(Integer.parseInt(buddyUserId), taskId);
 					if(taskInfo != null){
-						if(!taskInfo.getMemberUserIds().contains("\"id\":"+userId)){//如果这个人不在此任务的成员里
+						boolean isLook = true;//是否可以看这个人的任务详情
+						//1：指定人可见、2：只有任务相关人员可见[默认]、3：所有人可见；4：所有人不可见
+						if(buddyuserInfo.getPrivateType() == 1){
+							if(ValidateUtil.isNull(buddyuserInfo.getPrivateUserIds()) || !buddyuserInfo.getPrivateUserIds().contains(userId)){
+								isLook = false;
+							}
+						}else if(buddyuserInfo.getPrivateType() == 2){
+							if(!taskInfo.getMemberUserIds().contains("\"id\":"+userId)){//如果这个人不在此任务的成员里
+								isLook = false;
+							}
+							//在下面的for循环里面判断
+						}else if(buddyuserInfo.getPrivateType() == 4){
 							isLook = false;
+						}else if(buddyuserInfo.getPrivateType() == 3){
+							isLook = true;
 						}
 						if(!isLook){
 							taskInfo.setTitle("已有安排");

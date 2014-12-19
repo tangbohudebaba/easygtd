@@ -57,7 +57,13 @@ public class IosPushApns {
 				tokenList.add(token);
 			}
 		}
-		return sendpush(tokenList, path, password, String.format(messageTmp, content+""), count, false);
+		boolean production = false;
+		String deployStatus = Configuration.get("push.deployStatus");
+		if(ValidateUtil.isEquals("2", deployStatus)){
+			production = true;
+			path = Configuration.get("push.p12PatchProduction");
+		}
+		return sendpush(tokenList, path, password, String.format(messageTmp, content+""), count, false,production);
 	}
 	/**
 	 * 
@@ -85,7 +91,7 @@ public class IosPushApns {
 	 */
 
 	public static boolean sendpush(List<String> tokens, String path, String password,
-			String message, Integer count, boolean sendCount) {
+			String message, Integer count, boolean sendCount,boolean production) {
 
 		try {
 			// message是一个json的字符串{“aps”:{“alert”:”iphone推送测试”}}
@@ -105,9 +111,8 @@ public class IosPushApns {
 			// pushManager.initializeConnection(new
 			// AppleNotificationServerBasicImpl(path, password, null,
 			// "gateway.sandbox.push.apple.com", 2195));
-			pushManager
-					.initializeConnection(new AppleNotificationServerBasicImpl(
-							path, password, false));
+			
+			pushManager.initializeConnection(new AppleNotificationServerBasicImpl(path, password, production));
 
 			List<PushedNotification> notifications = new ArrayList<PushedNotification>();
 
@@ -177,7 +182,10 @@ public class IosPushApns {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		sendpush("12b28568566223e44ac61da8c31cfbb27b6088ac9338a76182ba5aee3a2dcbb0", "你猜3", 100);
+//		sendpush("12b28568566223e44ac61da8c31cfbb27b6088ac9338a76182ba5aee3a2dcbb0", "你猜3", 100);
+		
+		String token = "44408f2078d6a32f96b8ed4038ebb8e7f6ab16cd4283f45617174c31209afeed";
+		sendpush(token, "你猜3", 100);
 //		IosPushApns send = new IosPushApns();
 //		List<String> tokens = new ArrayList<String>();
 //		tokens.add("6de030f4dd42a0896c683e3a27dd9d9e96becd10f053d6fef9391c2c3fc5e157");

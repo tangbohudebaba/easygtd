@@ -5,12 +5,13 @@
 		<proxiedContextPath>/meap</proxiedContextPath>
 	</site>
 	<!-- 本地测试 -->
-	<!-- <httpRootPath>http://172.16.0.58:8080/easygtd/</httpRootPath> -->
+	<httpRootPath>http://192.168.60.11:8080/easygtd/</httpRootPath> 
 	<!-- 线上 -->
-	<httpRootPath>http://123.57.46.100/easygtd/</httpRootPath>
+<!-- 	<httpRootPath>http://123.57.46.100/easygtd/</httpRootPath> -->
 	<push>
-		<deployStatus>1</deployStatus><!-- 部署状态,1: Developer 2:Production -->
+		<deployStatus>2</deployStatus><!-- 部署状态,1: Developer 2:Production -->
 		<p12Patch>E:\Easy GTD\Certificates.p12</p12Patch>
+		<p12PatchProduction>E:\Easy GTD\Certificates_production.p12</p12PatchProduction>
 		<p12Password>123456</p12Password>
 	</push>
 	

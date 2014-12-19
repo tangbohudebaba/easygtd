@@ -291,17 +291,21 @@ public class TaskAction extends BusinessBaseAction {
 			taskInfo.setEndTime(newTaskInfo.getEndTime());
 			taskInfo.setIsDone(newTaskInfo.getIsDone());
 			taskInfo.setIsFlag(newTaskInfo.getIsFlag());
-			if(ValidateUtil.isNotNull(newTaskInfo.getMemberUserIds())){
+			//if(ValidateUtil.isNotNull(newTaskInfo.getMemberUserIds())){
 				taskInfo.setIsHasMembers(1);
-			}else{
-				taskInfo.setIsHasMembers(0);
-			}
+//			}else{
+//				taskInfo.setIsHasMembers(1);
+//			}
 			taskInfo.setLocation(newTaskInfo.getLocation());
 			taskInfo.setMemberUserIds(newTaskInfo.getMemberUserIds());
 			taskInfo.setRemark(newTaskInfo.getRemark());
 			taskInfo.setTitle(newTaskInfo.getTitle());
 			commonService.update(taskInfo);
-			
+			if(ValidateUtil.isNull(newTaskInfo.getMemberUserIds())){
+				newTaskInfo.setMemberUserIds(userId);
+			}else{
+				newTaskInfo.setMemberUserIds(","+userId);
+			}
 			if(ValidateUtil.isNotNull(newTaskInfo.getMemberUserIds())){
 				//任务修改之前的成员
 				List<Integer> beforeUserIdList = new ArrayList<Integer>(); 
@@ -384,6 +388,11 @@ public class TaskAction extends BusinessBaseAction {
 		
 		int taskId = -1;
 		try {
+			UserInfo UserInfo = commonService.get(UserInfo.class, Integer.parseInt(userId));
+			if(UserInfo == null){
+				msg = "未注册";
+				throw new Exception();
+			}
 			taskId = TaskInfoHandler.createTaskInfo(userId, taskInfoJsonStr);
 			if(taskId != -1){
 				code = "0";

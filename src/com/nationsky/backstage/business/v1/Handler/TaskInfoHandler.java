@@ -61,9 +61,9 @@ public class TaskInfoHandler {
 			JSONUtils.getMorpherRegistry().registerMorpher(new TimestampMorpher(formats));
 			taskInfo= (TaskInfo)JSONObject.toBean(JSONObject.fromObject(taskInfoJsonStr), TaskInfo.class);
 			
-			if(ValidateUtil.isNotNull(taskInfo.getMemberUserIds())){
+			//if(ValidateUtil.isNotNull(taskInfo.getMemberUserIds())){
 				taskInfo.setIsHasMembers(1);
-			}
+//			}
 			taskInfo.setUserId(Integer.parseInt(userId));
 			taskInfo.setCreaterUserId(Integer.parseInt(userId));
 			BusinessCommonService.commonService.create(taskInfo);

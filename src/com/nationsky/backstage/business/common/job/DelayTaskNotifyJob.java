@@ -9,6 +9,9 @@ import org.slf4j.LoggerFactory;
 
 import com.nationsky.backstage.business.common.BusinessCommonService;
 import com.nationsky.backstage.business.v1.Handler.NotifyHandler;
+import com.nationsky.backstage.business.v1.bsc.dao.po.TaskInfoAndUserInfo;
+import com.nationsky.backstage.core.Factor;
+import com.nationsky.backstage.core.Factor.C;
 
 
 /**
@@ -28,27 +31,35 @@ public class DelayTaskNotifyJob implements Job {
 	@Override
 	public void execute(JobExecutionContext context)
 			throws JobExecutionException {
-		logger.info("--send delay task notify start--");
-		//发送延期任务通知
-		String hqltmp = "select new list(t.id, tu.userId) from TaskInfo as t, TaskInfoAndUserInfo tu where t.id = tu.taskId and tu.isAgree = 1 and tu.isDone = 0 and tu.delayNotify = 0 and t.isDelete = 0 and t.endTime < %s";
-		String hql = String.format(hqltmp, System.currentTimeMillis()/1000);
-		List<List<Integer>> taskIdAnduserIdList = (List<List<Integer>>)BusinessCommonService.commonService.findList(hql, 0, Integer.MAX_VALUE);
-		for (List<Integer> taskIdAnduserId : taskIdAnduserIdList) {
-			Integer taskId = taskIdAnduserId.get(0);
-			Integer userId = taskIdAnduserId.get(1);
-			//生成通知
-			if(taskId != null && userId != null){
-				NotifyHandler.createNotify(userId, -1, taskId, 6);
-//				Notify notify = new Notify();
-//				notify.setFromUserId(null);//来源人员姓名
-//				notify.setTaskId(taskId);
-//				notify.setType(6);
-//				notify.setUserId(userId);//被通知用户ID
-//				BusinessCommonService.commonService.create(notify);
+		try {
+			logger.info("--send delay task notify start--");
+			//发送延期任务通知
+			String hqltmp = "select new list(t.id, tu.userId) from TaskInfo as t, TaskInfoAndUserInfo tu where t.id = tu.taskId and tu.isAgree = 1 and tu.isDone = 0 and tu.delayNotify = 0 and t.isDelete = 0 and t.endTime < %s";
+			String hql = String.format(hqltmp, System.currentTimeMillis()/1000);
+			List<List<Integer>> taskIdAnduserIdList = (List<List<Integer>>)BusinessCommonService.commonService.findList(hql, 0, Integer.MAX_VALUE);
+			for (List<Integer> taskIdAnduserId : taskIdAnduserIdList) {
+				Integer taskId = taskIdAnduserId.get(0);
+				Integer userId = taskIdAnduserId.get(1);
+				//生成通知
+				if(taskId != null && userId != null){
+					NotifyHandler.createNotify(userId, -1, taskId, 6);
+					TaskInfoAndUserInfo taskInfoAndUserInfo = BusinessCommonService.commonService.getUnique(TaskInfoAndUserInfo.class, Factor.create("userId", C.Eq, userId),Factor.create("taskId", C.Eq, taskId));
+					taskInfoAndUserInfo.setDelayNotify(1);
+					BusinessCommonService.commonService.update(taskInfoAndUserInfo);
+//					Notify notify = new Notify();
+//					notify.setFromUserId(null);//来源人员姓名
+//					notify.setTaskId(taskId);
+//					notify.setType(6);
+//					notify.setUserId(userId);//被通知用户ID
+//					BusinessCommonService.commonService.create(notify);
+				}
 			}
+			logger.info("send delay task notify count:"+taskIdAnduserIdList.size());
+			logger.info("--send delay task notify finashed--");
+		} catch (Exception e) {
+			// TODO: handle exception
 		}
-		logger.info("send delay task notify count:"+taskIdAnduserIdList.size());
-		logger.info("--send delay task notify finashed--");
+		
 	}
 	
 }
