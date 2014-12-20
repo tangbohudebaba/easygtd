@@ -359,7 +359,11 @@ public class UserAction extends BusinessBaseAction {
 			if(userInfo != null){
 				code = "0";
 				msg = "";
-				responseWriter(response,"privateSetting",userInfo.getPrivateType());
+				Map<String,Object> childFieldMap = new HashMap<String, Object>();
+				childFieldMap.put("privateType", userInfo.getPrivateType());
+				childFieldMap.put("privateUserIds", userInfo.getPrivateUserIds());
+				
+				responseWriter(response, childFieldMap);
 			}else{
 				throw new Exception();
 			}
@@ -889,7 +893,7 @@ public class UserAction extends BusinessBaseAction {
 				suggest.setContent(content);
 				commonService.create(suggest);
 				code = "0";
-				msg = "login success";
+				msg = "";
 				responseWriter(response);
 			}else {
 				throw new IOException();

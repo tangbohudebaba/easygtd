@@ -1,6 +1,7 @@
 package com.nationsky.backstage.business.common;
 
 import java.io.IOException;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -31,6 +32,17 @@ public abstract class BusinessBaseAction extends BaseAction{
 	 */
 	public static boolean responseWriter(HttpServletResponse response, String accumulateKey, Object child) {
 		return responseWriter(null, null, response, accumulateKey, child);
+	}
+	
+	/**
+	 * 响应返回成功状态码和内容
+	 * @param response
+	 * @param accumulateKey 子节点名称
+	 * @param child 子节点(实体类或者实体类集合或者任意对象包括八大基本类型)
+	 * @return
+	 */
+	public static boolean responseWriter(HttpServletResponse response, Map<String,Object> childMap) {
+		return responseWriter(null, null, response, childMap);
 	}
 	
 	/**
@@ -76,6 +88,26 @@ public abstract class BusinessBaseAction extends BaseAction{
 				responseMessage.setMsg(msg);
 			}
 			String responseJsonStr = DateJsonValueProcessorUtil.secondJsonJoint(responseMessage,accumulateKey,child);
+			logger.debug(responseJsonStr);
+			response.getWriter().write(responseJsonStr);
+			return true;
+		} catch (IOException e) {
+			logger.error(e.toString());
+			return false;
+		}
+	}
+	
+	public static boolean responseWriter(String code, String msg, HttpServletResponse response, Map<String,Object> childMap) {
+		try {
+			ResponseMessage responseMessage = new ResponseMessage();
+			if(ValidateUtil.isNotNull(code)){
+				responseMessage.setCode(code);
+			}
+			logger.info("response code : {}", responseMessage.getCode());
+			if(ValidateUtil.isNotNull(msg)){
+				responseMessage.setMsg(msg);
+			}
+			String responseJsonStr = DateJsonValueProcessorUtil.secondJsonJoint(responseMessage, childMap);
 			logger.debug(responseJsonStr);
 			response.getWriter().write(responseJsonStr);
 			return true;

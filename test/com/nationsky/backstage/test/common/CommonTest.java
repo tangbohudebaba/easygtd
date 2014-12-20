@@ -18,7 +18,7 @@ public class CommonTest {
 //		setPwd();
 //		findTimeBucketTasks();
 //		getDayTasks();
-//		getSetInfo();
+		getSetInfo();
 //		getUserInfo();
 //		getInfo();
 //		inviteBuddy();

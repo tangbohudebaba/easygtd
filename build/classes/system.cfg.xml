@@ -5,7 +5,7 @@
 		<proxiedContextPath>/meap</proxiedContextPath>
 	</site>
 	<!-- 本地测试 -->
-	<httpRootPath>http://192.168.60.11:8080/easygtd/</httpRootPath> 
+	<httpRootPath>http://192.168.60.28:8080/easygtd/</httpRootPath> 
 	<!-- 线上 -->
 <!-- 	<httpRootPath>http://123.57.46.100/easygtd/</httpRootPath> -->
 	<push>

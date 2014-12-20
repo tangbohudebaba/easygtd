@@ -87,6 +87,10 @@ public class DateJsonValueProcessorUtil implements JsonValueProcessor {
 	 * @return
 	 */
 	public static String secondJsonJoint(Object parent,String accumulateKey , Object child){
+		return secondJsonToJSONObject(parent, accumulateKey, child).toString();
+	}
+	
+	public static JSONObject secondJsonToJSONObject(Object parent,String accumulateKey , Object child){
 		JsonConfig config=new JsonConfig();
 		config.registerJsonValueProcessor(Timestamp.class, new DateJsonValueProcessorUtil(DateJsonValueProcessorUtil.Default_DATE_PATTERN));
 		JSONObject ResponseMessageJsonObject = JSONObject.fromObject(parent,config);
@@ -100,6 +104,23 @@ public class DateJsonValueProcessorUtil implements JsonValueProcessor {
 			}else{
 				ResponseMessageJsonObject.accumulate(accumulateKey, JSONObject.fromObject(child,config));
 			}
+		}
+		return ResponseMessageJsonObject;
+	}
+	
+	/**
+	 * 二级json组合
+	 * @param parent 父节点实体类
+	 * @param accumulateKey 子节点名称
+	 * @param child 子节点(实体类或者实体类集合或者任意对象包括八大基本类型)
+	 * @return
+	 */
+	public static String secondJsonJoint(Object parent,Map<String,Object> childMap){
+		JsonConfig config=new JsonConfig();
+		config.registerJsonValueProcessor(Timestamp.class, new DateJsonValueProcessorUtil(DateJsonValueProcessorUtil.Default_DATE_PATTERN));
+		JSONObject ResponseMessageJsonObject = JSONObject.fromObject(parent,config);
+		for (String accumulateKey : childMap.keySet()) {
+			ResponseMessageJsonObject = secondJsonToJSONObject(ResponseMessageJsonObject, accumulateKey, childMap.get(accumulateKey));
 		}
 		return ResponseMessageJsonObject.toString();
 	}
