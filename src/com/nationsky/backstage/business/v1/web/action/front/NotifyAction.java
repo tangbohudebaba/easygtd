@@ -106,4 +106,33 @@ public class NotifyAction extends BusinessBaseAction {
 		logger.info("ids:{},code:{},msg:{}",ids,code,msg);
 	}
 	
+	
+	//35 批量修改通知状态
+	@RequestMapping(value = "/batchSetStatus", method = RequestMethod.POST)
+	public void batchStatus(HttpServletRequest request,HttpServletResponse response) {
+		String code = "8", msg = "";//错误默认值
+		String ids = request.getParameter("ids");//通知Id,空格分开
+		try {
+			if(ValidateUtil.isNull(ids)){
+				throw new Exception();
+			}
+			String[] idstrArray = ids.split(" ");
+			Integer[] idArray = new Integer[ids.split(" ").length];
+			for (int i = 0; i < idstrArray.length; i++) {
+				idArray[i] = Integer.parseInt(idstrArray[i]);
+			}
+			List<Notify> notifyList = commonService.findList(Notify.class, 0, Integer.MAX_VALUE, null, Factor.create("id", C.In, idArray));
+			for (Notify notify : notifyList) {
+				notify.setStatus(1);
+				commonService.update(notify);
+			}
+			code = "0";
+			msg = "";
+			responseWriter(response);
+		} catch (Exception e) {
+			responseWriter(code, msg, response);
+		}
+		logger.info("ids:{},code:{},msg:{}",ids,code,msg);
+	}
+	
 }

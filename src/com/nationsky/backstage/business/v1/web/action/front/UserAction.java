@@ -690,6 +690,7 @@ public class UserAction extends BusinessBaseAction {
 			UserInfo buddyuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, Integer.parseInt(buddyUserId)));
 			
 			if(userInfo != null && buddyuserInfo != null){
+				NotifyHandler.updateNotifyStatusById(Integer.parseInt(notifyId));
 				if(ValidateUtil.isNotNull(userInfo.getBuddyUserIds()) && userInfo.getBuddyUserIds().contains(buddyuserInfo.getId().toString())){
 					msg = "已经是好友";
 					code = "0";

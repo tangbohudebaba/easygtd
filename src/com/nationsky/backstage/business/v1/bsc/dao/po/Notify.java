@@ -39,6 +39,7 @@ public class Notify extends PO {
 	private String title;//任务标题
 	private Long beginTime;//开始时间戳
 	private	Long endTime;//结束时间戳
+	private Integer status = 0;//通知状态,0未读 1已读
 	private Timestamp createdAt = new Timestamp(System.currentTimeMillis());//通知创建时间
 	private Timestamp updatedAt = new Timestamp(System.currentTimeMillis());//通知更新时间
 	public Integer getId() {
@@ -127,6 +128,14 @@ public class Notify extends PO {
 
 	public void setUserId(Integer userId) {
 		this.userId = userId;
+	}
+
+	public Integer getStatus() {
+		return status;
+	}
+
+	public void setStatus(Integer status) {
+		this.status = status;
 	}
 
 	

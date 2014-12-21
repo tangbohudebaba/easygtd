@@ -47,7 +47,7 @@ public class IosPushJob implements Job {
 			for (IosPush iosPush : iosPushList) {
 				UserInfo userInfo = BusinessCommonService.commonService.getUnique(UserInfo.class, Factor.create("id", C.Eq, iosPush.getUserId()));
 				if(userInfo != null){
-					int count = BusinessCommonService.commonService.getCount(Notify.class, Factor.create("userId", C.Eq, userInfo.getId()));
+					int count = BusinessCommonService.commonService.getCount(Notify.class, Factor.create("userId", C.Eq, userInfo.getId()), Factor.create("status", C.Eq, 0));
 					if(count == 0){
 						count = 1;
 					}

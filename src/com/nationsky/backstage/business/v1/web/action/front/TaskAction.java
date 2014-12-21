@@ -479,6 +479,7 @@ public class TaskAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(userId)||ValidateUtil.isNull(taskId)|| ValidateUtil.isNull(notifyId)){
 				throw new Exception();
 			}
+			NotifyHandler.updateNotifyStatusById(Integer.parseInt(notifyId));
 			TaskInfoAndUserInfo taskInfoAndUserInfo = commonService.getUnique(TaskInfoAndUserInfo.class, Factor.create("userId", C.Eq, Integer.parseInt(userId)),  Factor.create("taskId", C.Eq, Integer.parseInt(taskId)), Factor.create("isAgree", C.Eq, 0));
 			if(taskInfoAndUserInfo == null){
 				throw new Exception();
@@ -517,6 +518,7 @@ public class TaskAction extends BusinessBaseAction {
 			if(ValidateUtil.isNull(userId) || ValidateUtil.isNull(taskId) || ValidateUtil.isNull(notifyId)){
 				throw new Exception();
 			}
+			NotifyHandler.updateNotifyStatusById(Integer.parseInt(notifyId));
 			TaskInfoAndUserInfo taskInfoAndUserInfo = commonService.getUnique(TaskInfoAndUserInfo.class, Factor.create("userId", C.Eq, Integer.parseInt(userId)),  Factor.create("taskId", C.Eq, Integer.parseInt(taskId)), Factor.create("isAgree", C.Eq, 0));
 			if(taskInfoAndUserInfo == null){
 				throw new Exception();

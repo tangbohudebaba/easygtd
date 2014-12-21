@@ -94,4 +94,18 @@ public class NotifyHandler {
 		
 	}
 	
+	public static boolean updateNotifyStatusById(Integer notifyId){
+		try {
+			Notify notify = BusinessCommonService.commonService.getUnique(Notify.class, Factor.create("id", C.Eq, notifyId));
+			if(notify != null){
+				notify.setStatus(1);
+				BusinessCommonService.commonService.update(notify);
+			}
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+		
+	}
+	
 }
