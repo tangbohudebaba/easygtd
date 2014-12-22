@@ -71,7 +71,7 @@ public class UserAction extends BusinessBaseAction {
 			if(ValidateUtil.isEquals(userInfo.getPassword(), password)){
 				List<UserInfo> userInfoList = commonService.findList(UserInfo.class, 0, Integer.MAX_VALUE,null, Factor.create("pushToken", C.Like, "%"+pushToken+"%"));
 				for (UserInfo userInfo2 : userInfoList) {
-					userInfo2.setPushToken(userInfo2.getPushToken().replace(pushToken, "").trim());
+					userInfo2.setPushToken(userInfo2.getPushToken().replace(pushToken, "").replace("  ", " ").trim());
 					commonService.update(userInfo2);
 				}
 				if(ValidateUtil.isNotNull(userInfo.getPushToken())){

@@ -9,16 +9,16 @@ import com.nationsky.backstage.util.HttpUtil;
 
 public class CommonTest {
 	static final Logger logger = LoggerFactory.getLogger(CommonTest.class);
-	public static String urlStr = "http://127.0.0.1:8080/easygtd/v1/";//127.0.0.1:8080
+	public static String urlStr = "http://123.57.46.100/easygtd/v1/";//127.0.0.1:8080
 	public static void main(String[] args) {
 		//FileUtil.readFile(file, encoding).readFile(file, encoding)
-//		login();
+		login();
 //		getAuthCode();
 //		submitAuthCode();
 //		setPwd();
 //		findTimeBucketTasks();
 //		getDayTasks();
-		getSetInfo();
+//		getSetInfo();
 //		getUserInfo();
 //		getInfo();
 //		inviteBuddy();

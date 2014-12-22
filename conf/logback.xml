@@ -21,17 +21,18 @@
        </layout>
     </appender>
 
-    <root level="DEBUG">
+    <root level="error">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE" />
     </root>
     
-     <logger name="com.nsc">
-        <level value="DEBUG"/>
+    <logger name="com.nationsky" level="info">
     </logger>
     
-    <logger name="java.sql.PreparedStatement">
-        <level value="DEBUG"/>
+    <logger name="com.nationsky.backstage.business.common.job" level="error">
+    </logger>
+    
+    <logger name="java.sql.PreparedStatement" level="error">
     </logger>
     
 </configuration> 

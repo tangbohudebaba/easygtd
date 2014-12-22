@@ -1,20 +1,25 @@
 package com.nationsky.backstage.business.common;
 
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.nationsky.backstage.Configuration;
-import com.nationsky.backstage.util.ValidateUtil;
-
+import javapns.communication.exceptions.CommunicationException;
+import javapns.communication.exceptions.KeystoreException;
 import javapns.devices.Device;
+import javapns.devices.exceptions.InvalidDeviceTokenFormatException;
 import javapns.devices.implementations.basic.BasicDevice;
 import javapns.notification.AppleNotificationServerBasicImpl;
 import javapns.notification.PushNotificationManager;
 import javapns.notification.PushNotificationPayload;
 import javapns.notification.PushedNotification;
+
+import org.json.JSONException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.nationsky.backstage.Configuration;
+import com.nationsky.backstage.util.ValidateUtil;
 
 /** 
  * @title : 
@@ -43,8 +48,11 @@ public class IosPushApns {
 	 * @param tokens 空格分开的token
 	 * @param content 推送内容
 	 * @param count iphone应用图标上小红圈上的数值
+	 * @throws InvalidDeviceTokenFormatException 
+	 * @throws CommunicationException 
+	 * @throws KeystoreException 
 	 */
-	public static boolean sendpush(String tokens,String content, Integer count) {
+	public static boolean sendpush(String tokens,String content, Integer count) throws UnknownHostException, JSONException, CommunicationException, InvalidDeviceTokenFormatException, KeystoreException{
 		if(ValidateUtil.isNull(tokens) || ValidateUtil.isNull(content)){
 			return true;
 		}
@@ -65,6 +73,30 @@ public class IosPushApns {
 		}
 		return sendpush(tokenList, path, password, String.format(messageTmp, content+""), count, false,production);
 	}
+	
+	
+	public static List<PushedNotification> sendpush2(String tokens,String content, Integer count) throws UnknownHostException, JSONException, CommunicationException, InvalidDeviceTokenFormatException, KeystoreException{
+		if(ValidateUtil.isNull(tokens) || ValidateUtil.isNull(content)){
+			return null;
+		}
+		String messageTmp = "{'aps':{'alert':'%s'}}";
+		String path = Configuration.get("push.p12Patch");
+		String password = Configuration.get("push.p12Password");
+		List<String> tokenList = new ArrayList<String>();
+		for (String token : tokens.split(" ")) {
+			if(ValidateUtil.isNotNull(token) && token.length() == 64){
+				tokenList.add(token);
+			}
+		}
+		boolean production = false;
+		String deployStatus = Configuration.get("push.deployStatus");
+		if(ValidateUtil.isEquals("2", deployStatus)){
+			production = true;
+			path = Configuration.get("push.p12PatchProduction");
+		}
+		return sendpush2(tokenList, path, password, String.format(messageTmp, content+""), count, false,production);
+	}
+	
 	/**
 	 * 
 	 * 这是一个比较简单的推送方法，
@@ -88,12 +120,69 @@ public class IosPushApns {
 	 * 
 	 * @param sendCount
 	 *            单发还是群发 true：单发 false：群发
+	 * @throws CommunicationException 
+	 * @throws InvalidDeviceTokenFormatException 
+	 * @throws KeystoreException 
 	 */
 
-	public static boolean sendpush(List<String> tokens, String path, String password,
-			String message, Integer count, boolean sendCount,boolean production) {
+	public static List<PushedNotification> sendpush2(List<String> tokens, String path, String password,
+			String message, Integer count, boolean sendCount,boolean production) throws UnknownHostException,JSONException, CommunicationException, InvalidDeviceTokenFormatException, KeystoreException{
 
-		try {
+	
+			// message是一个json的字符串{“aps”:{“alert”:”iphone推送测试”}}
+
+			PushNotificationPayload payLoad = PushNotificationPayload
+					.fromJSON(message);
+
+//			payLoad.addAlert("iphone推送测试   www.guligei.com"); // 消息内容
+
+			payLoad.addBadge(count); // iphone应用图标上小红圈上的数值
+
+			payLoad.addSound("default"); // 铃音 默认
+
+			PushNotificationManager pushManager = new PushNotificationManager();
+
+			// true：表示的是产品发布推送服务 false：表示的是产品测试推送服务
+			// pushManager.initializeConnection(new
+			// AppleNotificationServerBasicImpl(path, password, null,
+			// "gateway.sandbox.push.apple.com", 2195));
+			
+			pushManager.initializeConnection(new AppleNotificationServerBasicImpl(path, password, production));
+
+			List<PushedNotification> notifications = new ArrayList<PushedNotification>();
+
+			// 发送push消息
+
+			if (sendCount) {
+				Device device = new BasicDevice();
+
+				device.setToken(tokens.get(0));
+
+				PushedNotification notification = pushManager.sendNotification(
+						device, payLoad, true);
+
+				notifications.add(notification);
+
+			} else {
+				List<Device> device = new ArrayList<Device>();
+
+				for (String token : tokens) {
+
+					device.add(new BasicDevice(token));
+
+				}
+
+				notifications = pushManager.sendNotifications(payLoad, device);
+
+			}
+
+			return notifications;
+	}
+	
+	public static boolean sendpush(List<String> tokens, String path, String password,
+			String message, Integer count, boolean sendCount,boolean production) throws UnknownHostException,JSONException, CommunicationException, InvalidDeviceTokenFormatException, KeystoreException{
+
+	
 			// message是一个json的字符串{“aps”:{“alert”:”iphone推送测试”}}
 
 			PushNotificationPayload payLoad = PushNotificationPayload
@@ -157,7 +246,7 @@ public class IosPushApns {
 				return true;
 
 			} else if (successful == 0 && failed > 0) {
-				logger.info("推送失败" + failedNotifications.toString());
+				logger.info("推送失败" + failedNotifications.get(0).toString());
 				return false;
 			} else if (successful == 0 && failed == 0) {
 				logger.info("推送失败" + failedNotifications.toString());
@@ -169,10 +258,6 @@ public class IosPushApns {
 			}
 			// pushManager.stopConnection();
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
 
 	}
 
@@ -182,10 +267,42 @@ public class IosPushApns {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-//		sendpush("12b28568566223e44ac61da8c31cfbb27b6088ac9338a76182ba5aee3a2dcbb0", "你猜3", 100);
+		try {
+			List<PushedNotification> notifications = sendpush2("6de030f4dd42a0896c683e3a27dd9d9e96becd10f053d6fef9391c2c3fc5e157 6de030f4dd42a0896c683e3a27dd9d9e96becd10f053d6fef9391c2c3fc5e158", "你猜3", 100);
+			List<PushedNotification> failedNotifications = PushedNotification
+					.findFailedNotifications(notifications);
+
+			List<PushedNotification> successfulNotifications = PushedNotification
+					.findSuccessfulNotifications(notifications);
+
+			int failed = failedNotifications.size();
+			for (PushedNotification pushedNotification : failedNotifications) {
+				String failtoken = pushedNotification.getDevice().getToken();
+				System.out.println("failtoken:"+failtoken);
+				
+			}
+			int successful = successfulNotifications.size();
+
+//			if (successful > 0 && failed == 0) {
+			if (successful > 0) {
+				logger.info("推送成功" + successfulNotifications.toString());
+
+			} else if (successful == 0 && failed > 0) {
+				logger.info("推送失败" + failedNotifications.get(0).toString());
+			} else if (successful == 0 && failed == 0) {
+				logger.info("推送失败" + failedNotifications.toString());
+				logger.info("No notifications could be sent, probably because of a critical error");
+			} else {
+				logger.info("推送失败" + failedNotifications.toString());
+			}
+		} catch (UnknownHostException | JSONException | CommunicationException
+				| InvalidDeviceTokenFormatException | KeystoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
-		String token = "44408f2078d6a32f96b8ed4038ebb8e7f6ab16cd4283f45617174c31209afeed";
-		sendpush(token, "你猜3", 100);
+//		String token = "6de030f4dd42a0896c683e3a27dd9d9e96becd10f053d6fef9391c2c3fc5e157";
+		//sendpush(token, "你猜3", 100);
 //		IosPushApns send = new IosPushApns();
 //		List<String> tokens = new ArrayList<String>();
 //		tokens.add("6de030f4dd42a0896c683e3a27dd9d9e96becd10f053d6fef9391c2c3fc5e157");

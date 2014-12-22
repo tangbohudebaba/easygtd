@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.nationsky.backstage.business.common.BusinessBaseAction;
 import com.nationsky.backstage.business.common.BusinessCommonService;
+import com.nationsky.backstage.business.common.ResponseMessage;
 import com.nationsky.backstage.business.v1.Handler.NotifyHandler;
 import com.nationsky.backstage.business.v1.Handler.TaskInfoHandler;
 import com.nationsky.backstage.business.v1.bsc.dao.po.TaskInfo;
@@ -365,7 +366,7 @@ public class TaskAction extends BusinessBaseAction {
 					List<TaskInfoAndUserInfo> taskInfoAndUserInfoList1 = commonService.findList(TaskInfoAndUserInfo.class, 0, Integer.MAX_VALUE, null, Factor.create("taskId", C.Eq, Integer.parseInt(taskId)), Factor.create("userId", C.Eq, deletedUserId));
 					for (TaskInfoAndUserInfo taskInfoAndUserInfo : taskInfoAndUserInfoList1) {
 						commonService.remove(taskInfoAndUserInfo);
-						NotifyHandler.createNotify(deletedUserId, Integer.parseInt(userId), Integer.parseInt(taskId), 4);
+						NotifyHandler.createNotify(deletedUserId, Integer.parseInt(userId), Integer.parseInt(taskId), 13);
 					}
 				}
 			}
@@ -482,6 +483,9 @@ public class TaskAction extends BusinessBaseAction {
 			NotifyHandler.updateNotifyStatusById(Integer.parseInt(notifyId));
 			TaskInfoAndUserInfo taskInfoAndUserInfo = commonService.getUnique(TaskInfoAndUserInfo.class, Factor.create("userId", C.Eq, Integer.parseInt(userId)),  Factor.create("taskId", C.Eq, Integer.parseInt(taskId)), Factor.create("isAgree", C.Eq, 0));
 			if(taskInfoAndUserInfo == null){
+				NotifyHandler.deleteNotifyById(Integer.parseInt(notifyId));
+				code = ResponseMessage.notifyExpiry;
+				msg = ResponseMessage.statusCode.get(code);
 				throw new Exception();
 			}
 			commonService.remove(taskInfoAndUserInfo);
@@ -521,6 +525,9 @@ public class TaskAction extends BusinessBaseAction {
 			NotifyHandler.updateNotifyStatusById(Integer.parseInt(notifyId));
 			TaskInfoAndUserInfo taskInfoAndUserInfo = commonService.getUnique(TaskInfoAndUserInfo.class, Factor.create("userId", C.Eq, Integer.parseInt(userId)),  Factor.create("taskId", C.Eq, Integer.parseInt(taskId)), Factor.create("isAgree", C.Eq, 0));
 			if(taskInfoAndUserInfo == null){
+				NotifyHandler.deleteNotifyById(Integer.parseInt(notifyId));
+				code = ResponseMessage.notifyExpiry;
+				msg = ResponseMessage.statusCode.get(code);
 				throw new Exception();
 			}
 			taskInfoAndUserInfo.setIsAgree(1);

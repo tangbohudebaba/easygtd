@@ -33,6 +33,7 @@ public class IosPush extends PO {
 	private Integer id;//通知ID
 	private Integer userId;//被通知用户ID
 	private String content;//推送消息内容
+	private Integer failCount =0;//推送失败次数,如果超过3次,删除此条推送
 	private Timestamp createdAt = new Timestamp(System.currentTimeMillis());//通知创建时间
 	private Timestamp updatedAt = new Timestamp(System.currentTimeMillis());//通知更新时间
 	public Integer getId() {
@@ -74,6 +75,14 @@ public class IosPush extends PO {
 
 	public void setContent(String content) {
 		this.content = content;
+	}
+
+	public Integer getFailCount() {
+		return failCount;
+	}
+
+	public void setFailCount(Integer failCount) {
+		this.failCount = failCount;
 	}
 	
 }

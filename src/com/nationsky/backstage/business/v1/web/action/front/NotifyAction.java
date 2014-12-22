@@ -56,7 +56,7 @@ public class NotifyAction extends BusinessBaseAction {
 				throw new Exception();
 			}
 			DateUtil.getDate(new Date());
-			List<Notify> notifyList = commonService.findList(Notify.class, 0, Integer.MAX_VALUE, "updatedAt:desc", Factor.create("userId", C.Eq, Integer.parseInt(userId)), Factor.create("type", C.In, new Integer[]{1,2,3,4,5,6,8,9,12}));
+			List<Notify> notifyList = commonService.findList(Notify.class, 0, Integer.MAX_VALUE, "updatedAt:desc", Factor.create("userId", C.Eq, Integer.parseInt(userId)), Factor.create("type", C.In, new Integer[]{1,2,3,4,5,6,8,9,12,13}));
 			for (int i = 0; i < notifyList.size(); i++) {
 					TaskInfo taskInfo = commonService.getUnique(TaskInfo.class, Factor.create("id", C.Eq, notifyList.get(i).getTaskId()));
 					UserInfo fromuserInfo = commonService.getUnique(UserInfo.class,Factor.create("id", C.Eq, notifyList.get(i).getFromUserId()));
@@ -110,7 +110,7 @@ public class NotifyAction extends BusinessBaseAction {
 	//35 批量修改通知状态
 	@RequestMapping(value = "/batchSetStatus", method = RequestMethod.POST)
 	public void batchStatus(HttpServletRequest request,HttpServletResponse response) {
-		String code = "8", msg = "";//错误默认值
+		String code = "8", msg = "修改通知状态失败";//错误默认值
 		String ids = request.getParameter("ids");//通知Id,空格分开
 		try {
 			if(ValidateUtil.isNull(ids)){

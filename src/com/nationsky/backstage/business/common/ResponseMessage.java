@@ -3,6 +3,9 @@
  */
 package com.nationsky.backstage.business.common;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /** 
  * @title : 
  * @description : 
@@ -15,8 +18,15 @@ package com.nationsky.backstage.business.common;
  * @createtime : 2014年10月30日 下午2:07:03 
  */
 public class ResponseMessage {
+	public static Map<String,String> statusCode = new HashMap<String, String>();
+	public static final String notifyExpiry = "10";
 	private String code = "0";
 	private String msg = "";
+	
+	static{
+		statusCode.put(notifyExpiry, "此通知已失效");
+	}
+	
 	public String getCode() {
 		return code;
 	}
