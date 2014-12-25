@@ -892,6 +892,7 @@ public class UserAction extends BusinessBaseAction {
 			if(userInfo!=null){
 				Suggest suggest = new Suggest();
 				suggest.setContent(content);
+				suggest.setUserId(Integer.parseInt(userId));
 				commonService.create(suggest);
 				code = "0";
 				msg = "";

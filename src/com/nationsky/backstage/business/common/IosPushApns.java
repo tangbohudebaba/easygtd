@@ -268,7 +268,7 @@ public class IosPushApns {
 	 */
 	public static void main(String[] args) {
 		try {
-			List<PushedNotification> notifications = sendpush2("6de030f4dd42a0896c683e3a27dd9d9e96becd10f053d6fef9391c2c3fc5e157 6de030f4dd42a0896c683e3a27dd9d9e96becd10f053d6fef9391c2c3fc5e158", "你猜3", 100);
+			List<PushedNotification> notifications = sendpush2("751362d9aa27f697dfe99605b005a8ad40a7ff0fb993f37748c116f70e48a38b", "你猜3", 100);
 			List<PushedNotification> failedNotifications = PushedNotification
 					.findFailedNotifications(notifications);
 
