@@ -91,6 +91,8 @@ public class TaskAction extends BusinessBaseAction {
 			}
 			TaskInfoAndUserInfo taskInfoAndUserInfo = commonService.getUnique(TaskInfoAndUserInfo.class, Factor.create("userId", C.Eq, Integer.parseInt(userId)),Factor.create("taskId", C.Eq, Integer.parseInt(taskId)));
 			if(taskInfoAndUserInfo == null){
+				code = "11";
+				msg = "此任务已失效";
 				throw new Exception();
 			}
 			taskInfoAndUserInfo.setIsDone(1);

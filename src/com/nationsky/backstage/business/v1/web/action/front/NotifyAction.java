@@ -49,7 +49,7 @@ public class NotifyAction extends BusinessBaseAction {
 	//获取通知列表
 	@RequestMapping(value = "/getList", method = RequestMethod.POST)
 	public void getList(HttpServletRequest request,HttpServletResponse response) {
-		String code = "7", msg = "获取任务列表失败";//错误默认值
+		String code = "7", msg = "获取通知列表失败";//错误默认值
 		String userId = request.getParameter("userId");
 		try {
 			if(ValidateUtil.isNull(userId)){
