@@ -933,7 +933,9 @@ public class UserAction extends BusinessBaseAction {
 		        FileUtil.writeFile(saveFileName, file.getBytes());
 				logger.info("headPortraitImgPath:"+saveFileName);
 				String oldHeadPortraitImg = StringUtil.concat(V1Constants.headImgPath,userInfo.getHeadURL());
-				FileUtil.delete(oldHeadPortraitImg);
+				if(ValidateUtil.isNotNull(oldHeadPortraitImg) && oldHeadPortraitImg.endsWith(".jpg")){
+					FileUtil.delete(oldHeadPortraitImg);
+				}
 				userInfo.setHeadURL(newHeadPortraitImg);
 				commonService.update(userInfo);
 				code = "0";

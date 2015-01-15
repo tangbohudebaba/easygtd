@@ -464,7 +464,7 @@ public class FileUtil {
 		}
 	}
 	/**
-	 * 查看文件件是否存在不存就创建
+	 * 查看文件夹是否存在不存就创建
 	 * @param thisImageDir
 	 */
 	public static void mkdirs(String dir) {
